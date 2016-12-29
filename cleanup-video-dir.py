@@ -27,7 +27,7 @@ def cleanup(root, recycleBin):
     if os.path.isdir(path):
       count = countLargeFiles(path)
       if count == 0:
-        print("Cleaning up %s" % path)
+        print("Removing %s" % path)
         dest = tempfile.mkdtemp("", file, recycleBin)
         shutil.move(path, dest)
 
@@ -36,4 +36,5 @@ if os.path.exists(recycleBin):
   shutil.rmtree(recycleBin)
 os.makedirs(recycleBin)
 for root in argv[1:-1]:
+  print("Cleaning up %s" % root)
   cleanup(root, recycleBin)
