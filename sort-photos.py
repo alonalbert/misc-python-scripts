@@ -52,7 +52,7 @@ for root in argv[1:]:
       else:
         # Different file with same name, copy under a new name
         name, ext = os.path.splitext(f)
-        dstFile = tempfile.mkdtemp(ext, name, dst)
+        dstFile = tempfile.mktemp(ext, name, dst)
     print("%s -> %s" % (src, dst))
     if not os.path.exists(dst):
       os.makedirs(dst)
