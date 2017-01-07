@@ -5,7 +5,7 @@ import shutil
 import tempfile
 from sys import argv
 
-MIN_FILE_SIZE = 50 * 1024 * 1024
+MIN_FILE_SIZE = 120 * 1024 * 1024
 
 def countLargeFiles(dir):
   files = os.listdir(dir)
