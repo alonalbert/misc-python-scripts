@@ -32,7 +32,7 @@ for root in argv[1:]:
       month = m.group("month")
       day = m.group("day")
     if year is None or int(year) < 2000 or int(year) > 2050:
-      created = long(os.stat(src).st_ctime)
+      created = int(os.stat(src).st_ctime)
       year = datetime.datetime.fromtimestamp(created).strftime("%Y")
       month = datetime.datetime.fromtimestamp(created).strftime("%m")
       day = datetime.datetime.fromtimestamp(created).strftime("%d")
