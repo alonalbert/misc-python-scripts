@@ -46,11 +46,9 @@ for root in argv[1:-1]:
       for file2 in files2:
         if re.match("S\\d+", file2):
           path2 = os.path.join(path1, file2)
-          print("Cleaning up %s" % (path2))
           cleanup(path2, recycleBin)
 
 for root in argv[1:-1]:
-  print("Cleaning up %s" % root)
   cleanup(root, recycleBin)
 
 

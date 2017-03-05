@@ -15,9 +15,8 @@ def isVideo(f):
 
 
 for root in argv[1:]:
-  print("Sorting in %s" % root)
   files = os.listdir(root)
-
+  count = 0
   for f in files:
     if f == "Thumbs.db" or f == "breezebrowser.dat":
       continue
@@ -46,14 +45,14 @@ for root in argv[1:]:
     if os.path.exists(dstFile):
       if filecmp.cmp(src, dstFile, shallow=0):
         # Same file, delete file
-        print("Deleting already existing file: %s" % (f))
         os.remove(src)
         continue
       else:
         # Different file with same name, copy under a new name
         name, ext = os.path.splitext(f)
         dstFile = tempfile.mktemp(ext, name, dst)
-    print("%s -> %s" % (src, dst))
     if not os.path.exists(dst):
       os.makedirs(dst)
     shutil.move(src, dstFile)
+    count = count + 1
+  print("Sorted %d files in %s" % (count, root))
