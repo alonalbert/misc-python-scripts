@@ -2,10 +2,10 @@
 #
 import os
 import shutil
+import re
+
 from sys import argv
 from subprocess import call
-
-import re
 
 RAR_EXT = ".rar"
 CAT_PREFIX = "unrar-"
