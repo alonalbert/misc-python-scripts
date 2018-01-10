@@ -7,12 +7,30 @@ import filecmp
 import re
 from sys import argv
 import tempfile
+import configparser
+import requests
 
+# Crontab config:
+# 30 0 * * * /home/al/bin/sort-photos.py /nas/photo/sync/lani/camera /nas/photo/sync/lani/phone
 
 def isVideo(f):
   m = re.match(".*\.(mp4|avi|mkv)$", f.lower())
   return m is not None
 
+config = configparser.ConfigParser()
+config.read(os.path.expanduser('~/.pushover'))
+setup = config["setup"]
+user = setup['user']
+token = setup['cron-token']
+
+def pushover(message):
+  requests.post('https://api.pushover.net/1/messages.json',
+                data={
+                  'user': user,
+                  'token': token,
+                  'sound': 'none',
+                  'message': message
+                })
 
 for root in argv[1:]:
   files = os.listdir(root)
@@ -55,4 +73,6 @@ for root in argv[1:]:
       os.makedirs(dst)
     shutil.move(src, dstFile)
     count = count + 1
-  print("Sorted %d files in %s" % (count, root))
+  message = "Sorted %d files in %s" % (count, root)
+  print(message)
+  pushover(message)
