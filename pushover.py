@@ -83,7 +83,12 @@ if __name__ == '__main__':
       'attachment': open(args.attachment, 'rb')
     }
 
-  response = requests.post('https://api.pushover.net/1/messages.json', data=data, files=files)
-  if response.status_code != 200:
-    print(response.content)
-    exit(1)
+
+  try:
+    response = requests.post('https://api.pushover.net/1/messages.json', data=data, files=files)
+    if response.status_code != 200:
+      print(response.content)
+      exit(1)
+  except requests.exceptions.RequestException as e:
+    print e
+
