@@ -1,14 +1,15 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 #
 
 import os
 import re
 import shutil
 import sys
+from pathlib import Path
 
 from subprocess import call
 
-def getRarFile(path: str):
+def getRarFile(path):
   if os.path.isfile(path) and path.endswith(".rar"):
     return path
 
@@ -17,7 +18,7 @@ def getRarFile(path: str):
     if file.endswith(".rar"):
       return os.path.join(path, file)
 
-def handleZDay(outDir: str, path: str):
+def handleZDay(outDir, path):
   rarFile = None
   files = os.listdir(path)
   for file in files:
@@ -41,7 +42,7 @@ def handleZDay(outDir: str, path: str):
 
   dir = "%s/%s" % (outDir, series)
   tmpDir = "%s/tmp" % (dir)
-  os.makedirs(tmpDir, exist_ok=True)
+  Path(tmpDir).mkdir(parents=True)
 
   print("Extracting %s" % rarFile)
   call(["unrar", "-o-", "-inul", "x", rarFile], cwd=tmpDir)
