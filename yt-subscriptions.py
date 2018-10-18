@@ -1,5 +1,6 @@
-from youtube import YouTube
+from youtube import YouTube, removePreviouslyHandledVideos
 import datetime
+from os.path import expanduser
 
 youtube = YouTube()
 
@@ -12,6 +13,8 @@ channels = youtube.getSubscriptionChannels()
 for channel in channels:
   if channel.title != 'IFSC Climbing World Championships' and channel.title != 'USA Climbing':
     youtube.addVideos(videos, channel.channelId, '', None, -1, publishedAfter)
+
+removePreviouslyHandledVideos(videos, expanduser("~/.youtube-subscriptions-history"))
 
 youtube.addToPlaylist(playlistId, sorted(videos, key=lambda video: video.publishedAt))
 for video in sorted(videos, key=lambda video: video.publishedAt, reverse=True):

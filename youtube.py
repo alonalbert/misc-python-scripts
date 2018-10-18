@@ -171,3 +171,14 @@ class YouTube:
     for video in existingVideos:
       print "Deleting %s" % video
       playlistItems.delete(id=video)
+
+def removePreviouslyHandledVideos(videos, filename):
+  try:
+    with open(filename, 'r') as file:
+      history = file.read().splitlines()
+  except:
+    history = []
+  historySet = set(history)
+  videos = [video for video in videos if not video.videoId in historySet]
+  with open(filename, 'w') as file:
+    file.writelines(map(lambda video: video.videoId + '\n', videos + history))
