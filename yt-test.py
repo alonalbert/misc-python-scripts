@@ -15,6 +15,7 @@ EXCLUDE_CHANNELS = {
 
 youtube = YouTube()
 
+
 def channelFilter(channel):
   return channel.title not in EXCLUDE_CHANNELS
 
@@ -26,7 +27,7 @@ def videoFilter(channel, video):
 youtube.addVideosToPlaylist(
   'Test',
   'A test playlist',
-  datetime(2018, 10, 19),
-  '~/.youtube-subscriptions-history',
+  datetime(2018, 11, 1),
+  'youtube-test',
   lambda channel: channelFilter(channel),
   lambda channel, video: videoFilter(channel, video))
