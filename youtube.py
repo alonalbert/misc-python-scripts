@@ -22,6 +22,7 @@ API_VERSION = "v3"
 def printJson(response):
   print json.dumps(response, indent=4, sort_keys=True)
 
+
 class Channel:
   def __init__(self, title, channelId):
     self.title = unidecode(title)
@@ -136,8 +137,8 @@ class YouTube:
     while request is not None:
       response = request.execute()
       for item in response['items']:
-        id = item['id']
         snippet = item['snippet']
+        id = snippet["resourceId"]["videoId"]
         title = snippet['title']
         channelTitle = snippet['channelTitle']
         publishedAt = datetime.strptime(snippet['publishedAt'], '%Y-%m-%dT%H:%M:%S.%fZ')
@@ -148,7 +149,7 @@ class YouTube:
 
   def addToPlaylist(self, playlistId, videos):
     playlistItems = self.client.playlistItems()
-    existingVideos = set(map(lambda video: video.videoId, videos))
+    existingVideos = set(map(lambda video: video.videoId, self.getPlaylistItems(playlistId)))
 
     for video in videos:
       if video.videoId in existingVideos:
@@ -168,10 +169,6 @@ class YouTube:
             )))
       ).execute()
 
-    for video in existingVideos:
-      print "Deleting %s" % video
-      playlistItems.delete(id=video)
-
 def removePreviouslyHandledVideos(videos, filename):
   try:
     with open(filename, 'r') as file:
@@ -179,6 +176,6 @@ def removePreviouslyHandledVideos(videos, filename):
   except:
     history = []
   historySet = set(history)
-  videos = [video for video in videos if not video.videoId in historySet]
+  videos[:] = [video for video in videos if not video.videoId in historySet]
   with open(filename, 'w') as file:
-    file.writelines(map(lambda video: video.videoId + '\n', videos + history))
+    file.writelines(map(lambda video: video.videoId + '\n', videos) + map(lambda id: id + '\n', history))

@@ -13,7 +13,9 @@ playlistId = youtube.findOrCreatePlaylist('Climbing Finals', 'Final round of cli
 publishedAfter = datetime.datetime(2018, 1, 1).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
 videos = []
 
+print("Reading channel: IFSC")
 youtube.addVideos(videos, IFSC_CHANNEL, 'Finals', "Semi|Youth|Speed|Paraclimbing|Highlights", 20, publishedAfter)
+print("Reading channel: USA Climbing")
 youtube.addVideos(videos, USA_CLIMBING_CHANNEL, '',
                   'Youth|Collegiate|Speed|Qualification|Semi|(On the Road)|(Road to)|Junior', 20, publishedAfter)
 
