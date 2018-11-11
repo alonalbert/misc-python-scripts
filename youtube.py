@@ -127,6 +127,7 @@ class YouTube:
     return history
 
   def __writeHistoryFile(self, filename, history):
+    history[VIDEOS] = sorted(history[VIDEOS], key=lambda video: video['publishedAt'])
     with open(filename, 'w') as file:
       json.dump(history, file, sort_keys=True, indent=2)
 
