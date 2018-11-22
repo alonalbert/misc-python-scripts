@@ -83,7 +83,7 @@ class YouTube:
     for channel in channels:
       if channelFilter(channel):
         videos = self.__getNewVideos(channel, publishedAfter, historyVideosIds, videoFilter)
-        print('Channel %s: %d new videos' % (channel.title, len(videos)))
+        print('  %d new videos' % len(videos))
         for video in videos:
           historyVideos.append(video.__dict__)
           allVideos.append(video)
@@ -152,6 +152,7 @@ class YouTube:
     search = self.client.search()
     request = search.list(part='snippet', type='video', order='date', publishedAfter=publishedAfter,
                           channelId=channel.channelId)
+    print('Channel %s' % channel.title)
     while request is not None:
       response = request.execute()
       items = response['items']

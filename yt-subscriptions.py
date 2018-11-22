@@ -24,8 +24,8 @@ def videoFilter(channel, video):
 
 
 youtube.addVideosToPlaylist(
-  'Test',
-  'A test playlist',
+  'Subscription Feed',
+  'My subscribed videos',
   datetime(2018, 10, 19),
   '~/.youtube-subscriptions-history',
   lambda channel: channelFilter(channel),
