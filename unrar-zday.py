@@ -4,6 +4,7 @@
 import os
 import re
 import shutil
+import datetime
 import sys
 from pathlib import Path
 
@@ -30,15 +31,20 @@ def handleZDay(outDir, path):
     return
 
   name = os.path.basename(path)
-  macth = re.search(r"^(?P<series>[^.]*).(?P<episode>(\d\d.\d\d.\d\d)|(E\d+)).(?P<title>.*).XXX.*", name, re.IGNORECASE)
+  match = re.search(r"^(?P<series>[^.]*).((?P<episode>(\d\d.\d\d.\d\d)|(E\d+)).)?(?P<title>.*).XXX.*", name, re.IGNORECASE)
 
-  if not macth:
+  if not match:
     print("ZDAY: Can't match %s" % name)
     return
 
-  series =  re.sub(r"(([0-9]+)|([A-Z][a-z]*))", r"\1 ", macth.group('series')).strip()
-  episode = macth.group('episode').replace(".", "-")
-  title = macth.group('title').replace(".", " ")
+  series =  re.sub(r"(([0-9]+)|([A-Z][a-z]*))", r"\1 ", match.group('series')).strip()
+  episode = match.group('episode')
+  if episode:
+    episode = episode.replace(".", "-")
+  else:
+    episode = datetime.datetime.now().strftime('%Y-%m-%d')
+
+  title = match.group('title').replace(".", " ").replace(' JAPANESE', '')
 
   dir = "%s/%s" % (outDir, series)
   tmpDir = "%s/tmp" % (dir)
@@ -46,12 +52,12 @@ def handleZDay(outDir, path):
 
   print("Extracting %s" % rarFile)
   call(["unrar", "-o-", "-inul", "x", rarFile], cwd=tmpDir)
-  videoFile = os.listdir(tmpDir)[0]
 
-  src = "%s/%s" % (tmpDir, videoFile)
-  dest = "%s/%s %s%s" % (dir, episode, title, os.path.splitext(videoFile)[1])
+  for videoFile in os.listdir(tmpDir):
+    src = "%s/%s" % (tmpDir, videoFile)
+    dest = "%s/%s %s%s" % (dir, episode, title, os.path.splitext(videoFile)[1])
+    shutil.move(src, dest)
 
-  shutil.move(src, dest)
   shutil.rmtree(tmpDir)
 
 if __name__ == '__main__':
