@@ -20,6 +20,8 @@ def channelFilter(channel):
 
 
 def videoFilter(channel, video):
+  if "Numberphile" in channel.title and "Podcast" in  video.title:
+    return False
   return True
 
 

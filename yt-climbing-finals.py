@@ -32,7 +32,7 @@ def videoFilter(channel, video):
   if channelTitle == IFSC:
     return 'Finals' in videoTitle and not IFSE_EXCLUDE.search(videoTitle)
   elif channelTitle == USC:
-    return USC_EXCLUDE.search(videoTitle)
+    return not USC_EXCLUDE.search(videoTitle)
   elif channelTitle == UIAA:
     return 'Finals' in videoTitle and not UIAA_EXCLUDE.search(videoTitle)
   else:

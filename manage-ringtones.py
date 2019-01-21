@@ -28,7 +28,7 @@ def restore(directory):
 
 def restoreSection(section, directory):
     push('%s/%s' % (directory, section), '/sdcard/')
-    lines = subprocess.check_output(['adb', 'shell', 'ls', '/system/media/audio/%s/' % section.lower()]).decode("utf-8")
+    lines = subprocess.check_output(['adb', 'shell', 'ls', '/product/media/audio/%s/' % section.lower()]).decode("utf-8")
     systemFiles = lines.split()
     for file in systemFiles:
         subprocess.call(['adb', 'shell', 'rm', '-f', '/sdcard/%s/%s' %(section, file)])
@@ -47,7 +47,7 @@ def get(directory):
 def getSection(section, directory):
     tmpDir = directory + '/tmp'
     localSection = section.capitalize()
-    pull('/system/media/audio/' + section, tmpDir)
+    pull('/product/media/audio/' + section, tmpDir)
     files = os.listdir(tmpDir)
     dstDir = '%s/%s' % (directory, localSection)
     for file in files:

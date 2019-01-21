@@ -1,3 +1,4 @@
+# coding=utf-8
 import httplib2
 from datetime import datetime, date, timedelta
 import json
@@ -66,8 +67,9 @@ class YouTube:
     except:
       return datetime(1, 1, 1)
 
-  def addVideosToPlaylist(self, playlistTitle, playlistDescription, publishedAfter, historyFilename, channelFilter, videoFilter):
-    playlistId = self.__findOrCreatePlaylist(playlistTitle, playlistDescription)
+  def addVideosToPlaylist(self, playlistTitle, playlistDescription, publishedAfter, historyFilename, channelFilter,
+                          videoFilter):
+    playlistId = self.findOrCreatePlaylist(playlistTitle, playlistDescription)
     historyFilename = expanduser(historyFilename)
     history = self.__readHistoryFile(historyFilename, publishedAfter)
 
@@ -92,7 +94,7 @@ class YouTube:
 
     self.__writeHistoryFile(historyFilename, history)
 
-  def __findOrCreatePlaylist(self, title, description):
+  def findOrCreatePlaylist(self, title, description):
     # Find our playlist
     playlists = self.client.playlists()
     request = playlists.list(part='snippet,id', mine=True)
@@ -215,3 +217,16 @@ class YouTube:
               videoId=video.videoId
             )))
       ).execute()
+
+  def addVideoToPlaylist(self, playlistId, videoId):
+    playlistItems = self.client.playlistItems()
+    playlistItems.insert(
+      part='snippet',
+      body=dict(
+        snippet=dict(
+          playlistId=playlistId,
+          resourceId=dict(
+            kind='youtube#video',
+            videoId=videoId
+          )))
+    ).execute()
