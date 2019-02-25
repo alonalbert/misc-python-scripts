@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/local/bin/python3
 #
 
 import os
@@ -7,8 +7,14 @@ import shutil
 import datetime
 import sys
 from pathlib import Path
+import requests
+import configparser
 
 from subprocess import call
+
+def get_pushover_config_filename():
+  home_dir = os.path.expanduser('~/.pushover')
+  return home_dir if os.path.exists(home_dir) else os.path.dirname(os.path.realpath(__file__)) + '/.pushover'
 
 def getRarFile(path):
   if os.path.isfile(path) and path.endswith(".rar"):
@@ -46,23 +52,38 @@ def handleZDay(outDir, path):
 
   title = match.group('title').replace(".", " ").replace(' JAPANESE', '')
 
-  dir = "%s/%s" % (outDir, series)
-  tmpDir = "%s/tmp" % (dir)
-  Path(tmpDir).mkdir(parents=True)
+  # dir = "%s/%s" % (outDir, series)
+  # tmpDir = "%s/tmp" % (dir)
+  # Path(tmpDir).mkdir(parents=True)
+  #
+  # print("Extracting %s" % rarFile)
+  # call(["unrar", "-o-", "-inul", "x", rarFile], cwd=tmpDir)
+  #
+  # for videoFile in os.listdir(tmpDir):
+  #   src = "%s/%s" % (tmpDir, videoFile)
+  #   dest = "%s/%s %s%s" % (dir, episode, title, os.path.splitext(videoFile)[1])
+  #   shutil.move(src, dest)
+  #
+  # shutil.rmtree(tmpDir)
 
-  print("Extracting %s" % rarFile)
-  call(["unrar", "-o-", "-inul", "x", rarFile], cwd=tmpDir)
+  deluge_config = configparser.ConfigParser()
+  deluge_config.read(get_pushover_config_filename())
+  deluge_setup = deluge_config["setup"]
+  requests.post('https://api.pushover.net/1/messages.json',
+                data={
+                  'user': deluge_setup['user'],
+                  'token': deluge_setup['deluge-token'],
+                  'sound': 'magic',
+                  'message': title
+                })
 
-  for videoFile in os.listdir(tmpDir):
-    src = "%s/%s" % (tmpDir, videoFile)
-    dest = "%s/%s %s%s" % (dir, episode, title, os.path.splitext(videoFile)[1])
-    shutil.move(src, dest)
 
-  shutil.rmtree(tmpDir)
+ROOT = '/nas' if os.path.exists('/nas') else '/volume1'
+
 
 if __name__ == '__main__':
   dir = sys.argv[3]
-  if dir == '/nas/video/deluge/zday':
+  if dir == ROOT + '/video/deluge/zday':
     name = sys.argv[2]
     path = os.path.join(dir, name)
-    handleZDay('/nas/video/zday', path)
+    handleZDay(ROOT + '/video/zday', path)
