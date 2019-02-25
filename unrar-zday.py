@@ -82,4 +82,4 @@ if __name__ == '__main__':
   if dir == '/volume1/video/deluge/zday':
     name = sys.argv[2]
     path = os.path.join(dir, name)
-    handleZDay('volume1/video/zday', path)
+    handleZDay('/volume1/video/zday', path)
