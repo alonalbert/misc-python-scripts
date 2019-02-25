@@ -52,20 +52,20 @@ def handleZDay(outDir, path):
 
   title = match.group('title').replace(".", " ").replace(' JAPANESE', '')
 
-  # dir = "%s/%s" % (outDir, series)
-  # tmpDir = "%s/tmp" % (dir)
-  # Path(tmpDir).mkdir(parents=True)
-  #
-  # print("Extracting %s" % rarFile)
-  # call(["unrar", "-o-", "-inul", "x", rarFile], cwd=tmpDir)
-  #
-  # for videoFile in os.listdir(tmpDir):
-  #   src = "%s/%s" % (tmpDir, videoFile)
-  #   dest = "%s/%s %s%s" % (dir, episode, title, os.path.splitext(videoFile)[1])
-  #   shutil.move(src, dest)
-  #
-  # shutil.rmtree(tmpDir)
+  dir = "%s/%s" % (outDir, series)
+  tmpDir = "%s/tmp" % (dir)
+  Path(tmpDir).mkdir(parents=True)
 
+  print("Extracting %s" % rarFile)
+  call(["unrar", "-o-", "-inul", "x", rarFile], cwd=tmpDir)
+
+  for videoFile in os.listdir(tmpDir):
+    src = "%s/%s" % (tmpDir, videoFile)
+    dest = "%s/%s %s%s" % (dir, episode, title, os.path.splitext(videoFile)[1])
+    shutil.move(src, dest)
+
+  shutil.rmtree(tmpDir)
+  message = '%s - %s' % (series, title)
   deluge_config = configparser.ConfigParser()
   deluge_config.read(get_pushover_config_filename())
   deluge_setup = deluge_config["setup"]
@@ -74,16 +74,12 @@ def handleZDay(outDir, path):
                   'user': deluge_setup['user'],
                   'token': deluge_setup['deluge-token'],
                   'sound': 'magic',
-                  'message': title
+                  'message': message
                 })
-
-
-ROOT = '/nas' if os.path.exists('/nas') else '/volume1'
-
 
 if __name__ == '__main__':
   dir = sys.argv[3]
-  if dir == ROOT + '/video/deluge/zday':
+  if dir == '/volume1/video/deluge/zday':
     name = sys.argv[2]
     path = os.path.join(dir, name)
-    handleZDay(ROOT + '/video/zday', path)
+    handleZDay('volume1/video/zday', path)
