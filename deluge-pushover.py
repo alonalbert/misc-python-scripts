@@ -6,13 +6,18 @@ import configparser
 import sys
 import os
 
+
+def get_config_filename():
+  home_dir = os.path.expanduser('~/.pushover')
+  return home_dir if os.path.exists(home_dir) else os.path.dirname(os.path.realpath(__file__)) + '/.pushover'
+
 if __name__ == '__main__':
   dir = sys.argv[3]
   name = sys.argv[2]
   config = configparser.ConfigParser()
-  config.read(os.path.expanduser('~/.pushover'))
+  config.read(get_config_filename())
   setup = config["setup"]
-  if dir != '/nas/video/deluge/tv':
+  if not dir.endswith('/tv') or dir.endswith('/zday'):
     requests.post('https://api.pushover.net/1/messages.json',
                   data={
                     'user': setup['user'],
