@@ -79,10 +79,16 @@ class Duo:
   def print_new_words(self, all_words, order, topic):
     words = map(lambda word: unidecode(word), topic['words'])
     new_words = []
+    old_words = []
     for word in words:
         if word not in all_words:
           new_words.append(word)
-    print('%-4s: %s: %s' % (order, topic['title'], new_words))
+          all_words.add(word)
+        else:
+          old_words.append(word)
+    print('%-4s: %s:' % (order, topic['title']))
+    print('    Old words: %s:' % (old_words))
+    print('    New words: %s:' % (new_words))
 
 
   def _compare_topics(self, t1, t2):
