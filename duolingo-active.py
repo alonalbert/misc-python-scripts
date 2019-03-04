@@ -1,7 +1,8 @@
+#!/usr/bin/python
+
 import datetime
 import duolingo_client
 import sys
-
 
 if __name__ == '__main__':
   username = sys.argv[1]
