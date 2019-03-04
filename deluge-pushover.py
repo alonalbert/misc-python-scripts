@@ -17,7 +17,7 @@ if __name__ == '__main__':
   config = configparser.ConfigParser()
   config.read(get_config_filename())
   setup = config["setup"]
-  if not dir.endswith('/tv') or dir.endswith('/zday'):
+  if not (dir.endswith('/tv') or dir.endswith('/zday')):
     requests.post('https://api.pushover.net/1/messages.json',
                   data={
                     'user': setup['user'],
