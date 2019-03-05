@@ -7,7 +7,7 @@ import textwrap
 
 BASE_URL = 'https://www.duolingo.com'
 LOGIN_URL = BASE_URL + '/login'
-URL = BASE_URL + '/2017-06-30/users/%s?fields=currentCourse'
+URL = BASE_URL + '/2017-06-30/users/%s?fields=currentCourse,xpGains'
 LESSONS = [1, 1, 2, 3, 5]
 LESSONS_TOTAL = []
 
@@ -39,6 +39,9 @@ class Duo:
 
   def get_skills(self):
     return self.skills
+
+  def get_xp_gains(self):
+    return self._data['xpGains']
 
   def print_topics(self):
     course_total = 0

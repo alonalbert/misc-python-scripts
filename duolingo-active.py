@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import datetime
 import duolingo_client
@@ -31,4 +31,21 @@ if __name__ == '__main__':
     strength = int(skill['strength'] * 100)
     print('  %-3d: %-40s Level %d Lesson %2d/%02d %3d%%' % (i, name, finished_levels, finished_lessons, lessons, strength))
 
-  print
+  print()
+
+  xp_gains = duo.get_xp_gains()
+  lessons_xp = 0
+  stories_xp = 0
+  for xp_gain in reversed(xp_gains):
+    time = datetime.datetime.fromtimestamp(xp_gain['time'])
+    if (now - time).days > 0:
+      break
+    xp = xp_gain['xp']
+    if xp % 10 != 0:
+      stories_xp += xp
+    else:
+      lessons_xp += xp
+
+  print('XP Gained in Last 24 Hours:')
+  print('  Lessons %d:' % lessons_xp)
+  print('  Stories %d:' % stories_xp)
