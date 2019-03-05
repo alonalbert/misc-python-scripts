@@ -31,8 +31,6 @@ if __name__ == '__main__':
     strength = int(skill['strength'] * 100)
     print('  %-3d: %-40s Level %d Lesson %2d/%02d %3d%%' % (i, name, finished_levels, finished_lessons, lessons, strength))
 
-  print()
-
   xp_gains = duo.get_xp_gains()
   lessons_xp = 0
   stories_xp = 0
@@ -49,3 +47,4 @@ if __name__ == '__main__':
   print('XP Gained in Last 24 Hours:')
   print('  Lessons %d:' % lessons_xp)
   print('  Stories %d:' % stories_xp)
+  print()
