@@ -71,6 +71,6 @@ if __name__ == '__main__':
     print('  Lessons %d:' % lessons_xp)
     print('  Stories %d:' % stories_xp)
 
-    print('Lessons to go %d:' % get_uncompleted_lessons_count(duo.skills))
+    print('Lessons to go: %d' % get_uncompleted_lessons_count(duo.skills))
 
     print()
