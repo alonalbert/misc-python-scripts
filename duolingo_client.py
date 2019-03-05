@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import json
 import os.path
@@ -27,10 +27,10 @@ class Duo:
 
     login_response = requests.post(LOGIN_URL, data={'login': username, 'password': password})
     token = login_response.headers['jwt']
-    user_id = json.loads(login_response.content)['user_id']
+    user_id = json.loads(login_response.content.decode("utf-8"))['user_id']
 
     url = URL % user_id
-    self._data = json.loads(requests.get(url, headers={'authorization': 'Bearer %s' % token}).content)
+    self._data = json.loads(requests.get(url, headers={'authorization': 'Bearer %s' % token}).content.decode("utf-8"))
     self.skills = []
     for row in self._data['currentCourse']['skills']:
       for skill in row:
