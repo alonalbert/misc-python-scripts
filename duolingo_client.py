@@ -8,8 +8,6 @@ import textwrap
 BASE_URL = 'https://www.duolingo.com'
 LOGIN_URL = BASE_URL + '/login'
 URL = BASE_URL + '/2017-06-30/users/%s?fields=currentCourse,xpGains'
-LESSONS = [1, 1, 2, 3, 5]
-LESSONS_TOTAL = []
 
 
 def get_password():
@@ -18,11 +16,14 @@ def get_password():
 
 
 class Duo:
+  LESSONS = [1, 1, 2, 3, 5]
+  LESSONS_TOTAL = []
+
   def __init__(self, username, password=get_password()):
-    LESSONS_TOTAL.append(0)
+    self.LESSONS_TOTAL.append(0)
     i = 0
-    for _ in LESSONS:
-      LESSONS_TOTAL.append(LESSONS_TOTAL[i] + LESSONS[i])
+    for _ in self.LESSONS:
+      self.LESSONS_TOTAL.append(self.LESSONS_TOTAL[i] + self.LESSONS[i])
       i += 1
 
     login_response = requests.post(LOGIN_URL, data={'login': username, 'password': password})
@@ -57,9 +58,9 @@ class Duo:
         skill_total = finished_lessons
         skill_finished = finished_lessons
       else:
-        base_lessons = lessons / LESSONS[finished_levels]
-        skill_total = base_lessons * LESSONS_TOTAL[levels]
-        skill_finished = LESSONS_TOTAL[finished_levels] * base_lessons + finished_lessons
+        base_lessons = lessons / self.LESSONS[finished_levels]
+        skill_total = base_lessons * self.LESSONS_TOTAL[levels]
+        skill_finished = self.LESSONS_TOTAL[finished_levels] * base_lessons + finished_lessons
 
       course_total += skill_total
       course_finished += skill_finished
