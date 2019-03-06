@@ -55,21 +55,21 @@ if __name__ == '__main__':
         i, name, finished_levels, finished_lessons, lessons, strength))
 
     xp_gains = duo.get_xp_gains()
-    lessons_xp = 0
-    stories_xp = 0
+    lessons_xp_24h = 0
+    stories_xp_24h = 0
     for xp_gain in reversed(xp_gains):
         time = datetime.datetime.fromtimestamp(xp_gain['time'])
         if (now - time).days > 0:
             break
         xp = xp_gain['xp']
-        if xp % 10 != 0:
-            stories_xp += xp
+        if 10 < xp < 50:
+            stories_xp_24h += xp
         else:
-            lessons_xp += xp
+            lessons_xp_24h += xp
 
     print('XP Gained in Last 24 Hours:')
-    print('  Lessons %d:' % lessons_xp)
-    print('  Stories %d:' % stories_xp)
+    print('  Lessons %d:' % lessons_xp_24h)
+    print('  Stories %d:' % stories_xp_24h)
 
     print('Lessons to go: %d' % get_uncompleted_lessons_count(duo.skills))
 
