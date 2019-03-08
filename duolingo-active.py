@@ -3,12 +3,36 @@
 import argparse
 import datetime
 import os
+import sys
 
 from duolingo_client import Duo
-import sys
+from apiclient import discovery
+from google.oauth2 import service_account
 
 LOG_FORMAT = '%-20s %-15s %-15s %-10s\n'
 LOG_HEADER = LOG_FORMAT % ('Date', 'Lessons XP', 'Stories XP', 'To go')
+
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+SECRET_FILE = os.path.expanduser('~/.duolingo-tracker-client.json')
+DAY_ZERO = datetime.datetime(1899, 12, 30)
+RANGE = 'Log'
+
+
+def update_sheet(spreadsheet_id, lessons_xp, stories_xp, to_go):
+    credentials = service_account.Credentials.from_service_account_file(SECRET_FILE, scopes=SCOPES)
+    service = discovery.build('sheets', 'v4', credentials=credentials)
+    values_api = service.spreadsheets().values()
+    request = values_api.get(spreadsheetId=spreadsheet_id, range=RANGE, valueRenderOption='FORMULA')
+    response = request.execute()
+    values = response['values']
+    date = datetime.datetime.now() - DAY_ZERO
+    values.insert(1, [date.days, lessons_xp, stories_xp, to_go])
+    body = {
+        'values': values
+    }
+    request = values_api.update(spreadsheetId=spreadsheet_id, range=RANGE, valueInputOption='USER_ENTERED', body=body)
+    request.execute()
+
 
 def is_skill_finished(skill):
     levels = skill['levels']
@@ -44,11 +68,12 @@ def print_line(is_html, line):
     else:
         print(line)
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Daily Duolingo Activity.')
 
     parser.add_argument('user', help='Duolingo user name')
-    parser.add_argument('--log_file', help='File to log dayly activity')
+    parser.add_argument('--sheet', help='Google sheet for daily log')
     parser.add_argument('--status_file', help='Status file name', default=None)
 
     parser.add_argument('--html', dest='html', help='Print status in HTML', action='store_true')
@@ -60,7 +85,7 @@ if __name__ == '__main__':
     duo = Duo(args.user)
 
     if args.status_file:
-        status_file  = open(args.status_file, 'w')
+        status_file = open(args.status_file, 'w')
         sys.stdout = status_file
     else:
         status_file = None
@@ -146,14 +171,5 @@ if __name__ == '__main__':
     if status_file:
         status_file.close()
 
-    if args.log_file:
-        if os.path.exists(args.log_file):
-            with open(args.log_file, 'r') as f:
-                log_lines = f.readlines()
-        else:
-            log_lines = [LOG_HEADER]
-
-        log_lines.insert(1, LOG_FORMAT % (date, lessons_xp_today, stories_xp_today, lessons_to_go))
-
-        with open(args.log_file, 'w') as f:
-            f.writelines(log_lines)
+    if args.sheet:
+        update_sheet(args.sheet, lessons_xp_today, stories_xp_today, lessons_to_go)
