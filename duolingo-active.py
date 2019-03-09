@@ -40,6 +40,11 @@ def is_skill_finished(skill):
     finished_lessons = skill['finishedLessons']
     return finished_levels == levels or finished_levels == 4 and finished_lessons >= 10
 
+def is_skill_almost_finished(skill):
+    finished_levels = skill['finishedLevels']
+    finished_lessons = skill['finishedLessons']
+    return finished_levels == 4 and 20 > finished_lessons >= 10
+
 
 def get_uncompleted_lessons_count(skills):
     course_total = 0
@@ -101,15 +106,19 @@ if __name__ == '__main__':
     else:
         print(date)
 
+    almost_finished = 0
+    active = 0
     for i, skill in enumerate(duo.get_skills()):
         levels = skill['levels']
         finished_levels = skill['finishedLevels']
         finished_lessons = skill['finishedLessons']
         if is_skill_finished(skill):
+            if is_skill_almost_finished(skill):
+                almost_finished += 1
             continue
         if finished_levels < 4 and finished_lessons == 0:
             break
-
+        active += 1
         name = skill['name']
         lessons = skill['lessons']
         strength = int(skill['strength'] * 100)
@@ -156,7 +165,7 @@ if __name__ == '__main__':
             else:
                 lessons_xp_today += xp
 
-    print_line(is_html, '')
+    print_line(is_html, 'Almost finished: %d Active: %s' % (almost_finished, active))
     print_line(is_html, 'XP Gained in Last 24 Hours:')
     print_line(is_html, '  Lessons %d:' % lessons_xp_24h)
     print_line(is_html, '  Stories %d:' % stories_xp_24h)
