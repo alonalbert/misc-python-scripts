@@ -18,15 +18,15 @@ DAY_ZERO = datetime.datetime(1899, 12, 30)
 RANGE = 'Log'
 
 
-def update_sheet(spreadsheet_id, lessons_xp, stories_xp, to_go):
+def update_sheet(spreadsheet_id, date, lessons_xp, stories_xp, to_go):
     credentials = service_account.Credentials.from_service_account_file(SECRET_FILE, scopes=SCOPES)
     service = discovery.build('sheets', 'v4', credentials=credentials)
     values_api = service.spreadsheets().values()
     request = values_api.get(spreadsheetId=spreadsheet_id, range=RANGE, valueRenderOption='FORMULA')
     response = request.execute()
     values = response['values']
-    date = datetime.datetime.now() - DAY_ZERO
-    values.insert(1, [date.days, lessons_xp, stories_xp, to_go])
+    span = date - DAY_ZERO
+    values.insert(1, [span.days, lessons_xp, stories_xp, to_go])
     body = {
         'values': values
     }
@@ -37,7 +37,8 @@ def update_sheet(spreadsheet_id, lessons_xp, stories_xp, to_go):
 def is_skill_finished(skill):
     levels = skill['levels']
     finished_levels = skill['finishedLevels']
-    return finished_levels == levels
+    finished_lessons = skill['finishedLessons']
+    return finished_levels == levels or finished_levels == 4 and finished_lessons >= 10
 
 
 def get_uncompleted_lessons_count(skills):
@@ -134,7 +135,7 @@ if __name__ == '__main__':
     stories_xp_today = 0
 
     from_date = datetime.datetime(now.year, now.month, now.day)
-    if now.hour <= 4:
+    if now.hour < 1:
         from_date -= datetime.timedelta(days=1)
     to_date = from_date + datetime.timedelta(days=1)
 
@@ -172,4 +173,4 @@ if __name__ == '__main__':
         status_file.close()
 
     if args.sheet:
-        update_sheet(args.sheet, lessons_xp_today, stories_xp_today, lessons_to_go)
+        update_sheet(args.sheet, from_date, lessons_xp_today, stories_xp_today, lessons_to_go)
