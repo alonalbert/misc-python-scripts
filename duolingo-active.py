@@ -97,6 +97,9 @@ if __name__ == '__main__':
         status_file = None
 
     now = datetime.datetime.now()
+    if now.hour < 2:
+        now = datetime.datetime(now.year, now.month, now.day - 1)
+
     date = now.strftime("%Y-%m-%d (%a)")
     is_html = args.html
     if is_html:
@@ -144,8 +147,6 @@ if __name__ == '__main__':
     stories_xp_today = 0
 
     from_date = datetime.datetime(now.year, now.month, now.day)
-    if now.hour < 1:
-        from_date -= datetime.timedelta(days=1)
     to_date = from_date + datetime.timedelta(days=1)
 
     for xp_gain in reversed(xp_gains):
