@@ -23,7 +23,7 @@ API_VERSION = "v3"
 
 
 def printJson(response):
-  print json.dumps(response, indent=4, sort_keys=True)
+  print(json.dumps(response, indent=4, sort_keys=True))
 
 
 class Channel:
@@ -206,7 +206,7 @@ class YouTube:
         existingVideos.remove(video.videoId)
         continue
 
-      print "Adding %s" % video.title
+      print("Adding %s" % video.title)
       playlistItems.insert(
         part='snippet',
         body=dict(

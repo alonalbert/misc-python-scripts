@@ -90,5 +90,5 @@ if __name__ == '__main__':
       print(response.content)
       exit(1)
   except requests.exceptions.RequestException as e:
-    print e
+    print(e)
 

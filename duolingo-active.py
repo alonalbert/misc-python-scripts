@@ -3,6 +3,7 @@
 import argparse
 import datetime
 import os
+import pprint
 import sys
 
 from duolingo_client import Duo
@@ -15,8 +16,9 @@ LOG_HEADER = LOG_FORMAT % ('Date', 'Lessons XP', 'Stories XP', 'To go')
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SECRET_FILE = os.path.expanduser('~/.duolingo-tracker-client.json')
 DAY_ZERO = datetime.datetime(1899, 12, 30)
-RANGE = 'Log'
+RANGE = 'Log!A:G'
 
+PP = pprint.PrettyPrinter(indent=2)
 
 def update_sheet(spreadsheet_id, date, lessons_xp, stories_xp, to_go):
     credentials = service_account.Credentials.from_service_account_file(SECRET_FILE, scopes=SCOPES)
@@ -26,7 +28,16 @@ def update_sheet(spreadsheet_id, date, lessons_xp, stories_xp, to_go):
     response = request.execute()
     values = response['values']
     span = date - DAY_ZERO
-    values.insert(1, [span.days, lessons_xp, stories_xp, to_go])
+    values.insert(1, [span.days, lessons_xp, stories_xp, to_go, '', '', ''])
+
+    num_rows = len(values)
+    for (i, row) in enumerate(values[1:]):
+        row_num = i + 2
+        row[4] = '=AVERAGE(B{0}:B${1})'.format(row_num, num_rows)
+        row[5] = '=D{0}*10/E{0}'.format(row_num)
+        row[6] = '=TODAY() + F{0}'.format(row_num)
+        # print('%d: %s' % (i, row))
+
     body = {
         'values': values
     }
