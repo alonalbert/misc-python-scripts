@@ -4,6 +4,7 @@ import argparse
 import datetime
 import os
 import pprint
+import re
 import sys
 
 from duolingo_client import Duo
@@ -20,178 +21,194 @@ RANGE = 'Log!A:G'
 
 PP = pprint.PrettyPrinter(indent=2)
 
+CELL_REGEX_FOR_NEW_ROW = re.compile(r'([A-Z]\$)([\d+])')
+CELL_REGEX_FOR_OLD_ROWS = re.compile(r'([A-Z]\$?)([\d+])')
+
+
+def undate_formulas_in_row(row, regex):
+  for (j, cell) in enumerate(row):
+    if isinstance(cell, str) and cell.startswith('='):
+      row[j] = regex.sub(lambda m: m.group(1) + str(int(m.group(2)) + 1), cell)
+
+
+def update_formulas(values):
+  undate_formulas_in_row(values[1], CELL_REGEX_FOR_NEW_ROW)
+  for (i, row) in enumerate(values[2:]):
+    undate_formulas_in_row(row, CELL_REGEX_FOR_OLD_ROWS)
+
 def update_sheet(spreadsheet_id, date, lessons_xp, stories_xp, to_go):
-    credentials = service_account.Credentials.from_service_account_file(SECRET_FILE, scopes=SCOPES)
-    service = discovery.build('sheets', 'v4', credentials=credentials)
-    values_api = service.spreadsheets().values()
-    request = values_api.get(spreadsheetId=spreadsheet_id, range=RANGE, valueRenderOption='FORMULA')
-    response = request.execute()
-    values = response['values']
-    span = date - DAY_ZERO
-    values.insert(1, [span.days, lessons_xp, stories_xp, to_go, '', '', ''])
+  credentials = service_account.Credentials.from_service_account_file(SECRET_FILE, scopes=SCOPES)
+  service = discovery.build('sheets', 'v4', credentials=credentials)
+  values_api = service.spreadsheets().values()
+  request = values_api.get(spreadsheetId=spreadsheet_id, range=RANGE, valueRenderOption='FORMULA')
+  response = request.execute()
+  values = response['values']
+  span = date - DAY_ZERO
+  values.insert(1, values[1].copy())
+  values[1][0] = span.days
+  values[1][1] = lessons_xp
+  values[1][2] = stories_xp
+  values[1][3] = to_go
 
-    num_rows = len(values)
-    for (i, row) in enumerate(values[1:]):
-        row_num = i + 2
-        row[4] = '=AVERAGE(B{0}:B${1})'.format(row_num, num_rows)
-        row[5] = '=D{0}*10/E{0}'.format(row_num)
-        row[6] = '=TODAY() + F{0}'.format(row_num)
-        # print('%d: %s' % (i, row))
+  PP.pprint(values)
+  update_formulas(values)
+  PP.pprint(values)
 
-    body = {
-        'values': values
-    }
-    request = values_api.update(spreadsheetId=spreadsheet_id, range=RANGE, valueInputOption='USER_ENTERED', body=body)
-    request.execute()
+  body = {
+    'values': values
+  }
+  # request = values_api.update(spreadsheetId=spreadsheet_id, range=RANGE, valueInputOption='USER_ENTERED', body=body)
+  # request.execute()
 
 
 def is_skill_finished(skill):
-    levels = skill['levels']
-    finished_levels = skill['finishedLevels']
-    finished_lessons = skill['finishedLessons']
-    return finished_levels == levels or finished_levels == 4 and finished_lessons >= 10
+  levels = skill['levels']
+  finished_levels = skill['finishedLevels']
+  finished_lessons = skill['finishedLessons']
+  return finished_levels == levels or finished_levels == 4 and finished_lessons >= 10
+
 
 def is_skill_almost_finished(skill):
-    finished_levels = skill['finishedLevels']
-    finished_lessons = skill['finishedLessons']
-    return finished_levels == 4 and 20 > finished_lessons >= 10
+  finished_levels = skill['finishedLevels']
+  finished_lessons = skill['finishedLessons']
+  return finished_levels == 4 and 20 > finished_lessons >= 10
 
 
 def get_uncompleted_lessons_count(skills):
-    course_total = 0
-    course_finished = 0
-    for skill in skills:
-        levels = skill['levels']
-        lessons = skill['lessons']
-        finished_levels = skill['finishedLevels']
-        finished_lessons = skill['finishedLessons']
-        if finished_levels == levels:
-            skill_total = finished_lessons
-            skill_finished = finished_lessons
-        else:
-            base_lessons = lessons / Duo.LESSONS[finished_levels]
-            skill_total = base_lessons * Duo.LESSONS_TOTAL[levels]
-            skill_finished = Duo.LESSONS_TOTAL[finished_levels] * base_lessons + finished_lessons
+  course_total = 0
+  course_finished = 0
+  for skill in skills:
+    levels = skill['levels']
+    lessons = skill['lessons']
+    finished_levels = skill['finishedLevels']
+    finished_lessons = skill['finishedLessons']
+    if finished_levels == levels:
+      skill_total = finished_lessons
+      skill_finished = finished_lessons
+    else:
+      base_lessons = lessons / Duo.LESSONS[finished_levels]
+      skill_total = base_lessons * Duo.LESSONS_TOTAL[levels]
+      skill_finished = Duo.LESSONS_TOTAL[finished_levels] * base_lessons + finished_lessons
 
-        course_total += skill_total
-        course_finished += skill_finished
+    course_total += skill_total
+    course_finished += skill_finished
 
-    return int(course_total - course_finished)
+  return int(course_total - course_finished)
 
 
 def print_line(is_html, line):
-    if is_html:
-        print('%s<br/>' % line)
-    else:
-        print(line)
+  if is_html:
+    print('%s<br/>' % line)
+  else:
+    print(line)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Daily Duolingo Activity.')
+  parser = argparse.ArgumentParser(description='Daily Duolingo Activity.')
 
-    parser.add_argument('user', help='Duolingo user name')
-    parser.add_argument('--sheet', help='Google sheet for daily log')
-    parser.add_argument('--status_file', help='Status file name', default=None)
+  parser.add_argument('user', help='Duolingo user name')
+  parser.add_argument('--sheet', help='Google sheet for daily log')
+  parser.add_argument('--status_file', help='Status file name', default=None)
 
-    parser.add_argument('--html', dest='html', help='Print status in HTML', action='store_true')
-    parser.add_argument('--no-html', dest='html', help='Print status in text', action='store_false')
-    parser.set_defaults(html=False)
+  parser.add_argument('--html', dest='html', help='Print status in HTML', action='store_true')
+  parser.add_argument('--no-html', dest='html', help='Print status in text', action='store_false')
+  parser.set_defaults(html=False)
 
-    args = parser.parse_args()
+  args = parser.parse_args()
 
-    duo = Duo(args.user)
+  duo = Duo(args.user)
 
-    if args.status_file:
-        status_file = open(args.status_file, 'w')
-        sys.stdout = status_file
+  if args.status_file:
+    status_file = open(args.status_file, 'w')
+    sys.stdout = status_file
+  else:
+    status_file = None
+
+  now = datetime.datetime.now()
+  if now.hour < 2:
+    now = datetime.datetime(now.year, now.month, now.day - 1)
+
+  date = now.strftime("%Y-%m-%d (%a)")
+  is_html = args.html
+  if is_html:
+    print('<html>\n<header>\n</header>\n<body>')
+    print('<h2>%s</h2>' % date)
+    print('<table><tbody>')
+  else:
+    print(date)
+
+  almost_finished = 0
+  active = 0
+  for i, skill in enumerate(duo.get_skills()):
+    levels = skill['levels']
+    finished_levels = skill['finishedLevels']
+    finished_lessons = skill['finishedLessons']
+    if is_skill_finished(skill):
+      if is_skill_almost_finished(skill):
+        almost_finished += 1
+      continue
+    if finished_levels < 3 and finished_lessons == 0:
+      break
+    active += 1
+    name = skill['name']
+    lessons = skill['lessons']
+    strength = int(skill['strength'] * 100)
+    if is_html:
+      print('<tr>')
+      print('  <td>%s</td>' % i)
+      print('  <td>%s</td>' % name)
+      print('  <td>Level %s</td>' % finished_levels)
+      print('  <td>Lesson %s/%s</td>' % (finished_lessons, lessons))
+      print('  <td>%s%%</td>' % strength)
+      print('</tr>')
     else:
-        status_file = None
+      print('  %-3d: %-40s Level %d Lesson %2d/%02d %3d%%' % (
+        i, name, finished_levels, finished_lessons, lessons, strength))
+  if is_html:
+    print('</tbody></table>')
 
-    now = datetime.datetime.now()
-    if now.hour < 2:
-        now = datetime.datetime(now.year, now.month, now.day - 1)
+  xp_gains = duo.get_xp_gains()
+  lessons_xp_24h = 0
+  stories_xp_24h = 0
 
-    date = now.strftime("%Y-%m-%d (%a)")
-    is_html = args.html
-    if is_html:
-        print('<html>\n<header>\n</header>\n<body>')
-        print('<h2>%s</h2>' % date)
-        print('<table><tbody>')
+  lessons_xp_today = 0
+  stories_xp_today = 0
+
+  from_date = datetime.datetime(now.year, now.month, now.day)
+  to_date = from_date + datetime.timedelta(days=1)
+
+  for xp_gain in reversed(xp_gains):
+    time = datetime.datetime.fromtimestamp(xp_gain['time'])
+    if (now - time).days > 0:
+      break
+    xp = xp_gain['xp']
+    is_story = 10 < xp < 50
+    if is_story:
+      stories_xp_24h += xp
     else:
-        print(date)
+      lessons_xp_24h += xp
 
-    almost_finished = 0
-    active = 0
-    for i, skill in enumerate(duo.get_skills()):
-        levels = skill['levels']
-        finished_levels = skill['finishedLevels']
-        finished_lessons = skill['finishedLessons']
-        if is_skill_finished(skill):
-            if is_skill_almost_finished(skill):
-                almost_finished += 1
-            continue
-        if finished_levels < 4 and finished_lessons == 0:
-            break
-        active += 1
-        name = skill['name']
-        lessons = skill['lessons']
-        strength = int(skill['strength'] * 100)
-        if is_html:
-            print('<tr>')
-            print('  <td>%s</td>' % i)
-            print('  <td>%s</td>' % name)
-            print('  <td>Level %s</td>' % finished_levels)
-            print('  <td>Lesson %s/%s</td>' % (finished_lessons, lessons))
-            print('  <td>%s%%</td>' % strength)
-            print('</tr>')
-        else:
-            print('  %-3d: %-40s Level %d Lesson %2d/%02d %3d%%' % (
-                i, name, finished_levels, finished_lessons, lessons, strength))
-    if is_html:
-        print('</tbody></table>')
+    if from_date <= time < to_date:
+      if is_story:
+        stories_xp_today += xp
+      else:
+        lessons_xp_today += xp
 
-    xp_gains = duo.get_xp_gains()
-    lessons_xp_24h = 0
-    stories_xp_24h = 0
+  print_line(is_html, 'Almost finished: %d Active: %s' % (almost_finished, active))
+  print_line(is_html, 'XP Gained in Last 24 Hours:')
+  print_line(is_html, '  Lessons %d:' % lessons_xp_24h)
+  print_line(is_html, '  Stories %d:' % stories_xp_24h)
+  print_line(is_html, 'XP Gained today:')
+  print_line(is_html, '  Lessons %d:' % lessons_xp_today)
+  print_line(is_html, '  Stories %d:' % stories_xp_today)
+  lessons_to_go = get_uncompleted_lessons_count(duo.skills)
+  print_line(is_html, 'Lessons to go: %d' % lessons_to_go)
 
-    lessons_xp_today = 0
-    stories_xp_today = 0
+  if is_html:
+    print('</body></html>')
 
-    from_date = datetime.datetime(now.year, now.month, now.day)
-    to_date = from_date + datetime.timedelta(days=1)
+  if status_file:
+    status_file.close()
 
-    for xp_gain in reversed(xp_gains):
-        time = datetime.datetime.fromtimestamp(xp_gain['time'])
-        if (now - time).days > 0:
-            break
-        xp = xp_gain['xp']
-        is_story = 10 < xp < 50
-        if is_story:
-            stories_xp_24h += xp
-        else:
-            lessons_xp_24h += xp
-
-        if from_date <= time < to_date:
-            if is_story:
-                stories_xp_today += xp
-            else:
-                lessons_xp_today += xp
-
-    print_line(is_html, 'Almost finished: %d Active: %s' % (almost_finished, active))
-    print_line(is_html, 'XP Gained in Last 24 Hours:')
-    print_line(is_html, '  Lessons %d:' % lessons_xp_24h)
-    print_line(is_html, '  Stories %d:' % stories_xp_24h)
-    print_line(is_html, 'XP Gained today:')
-    print_line(is_html, '  Lessons %d:' % lessons_xp_today)
-    print_line(is_html, '  Stories %d:' % stories_xp_today)
-    lessons_to_go = get_uncompleted_lessons_count(duo.skills)
-    print_line(is_html, 'Lessons to go: %d' % lessons_to_go)
-
-    if is_html:
-        print('</body></html>')
-
-    if status_file:
-        status_file.close()
-
-    if args.sheet:
-        update_sheet(args.sheet, from_date, lessons_xp_today, stories_xp_today, lessons_to_go)
+  if args.sheet:
+    update_sheet(args.sheet, from_date, lessons_xp_today, stories_xp_today, lessons_to_go)
