@@ -50,15 +50,13 @@ def update_sheet(spreadsheet_id, date, lessons_xp, stories_xp, to_go):
   values[1][2] = stories_xp
   values[1][3] = to_go
 
-  PP.pprint(values)
   update_formulas(values)
-  PP.pprint(values)
 
   body = {
     'values': values
   }
-  # request = values_api.update(spreadsheetId=spreadsheet_id, range=RANGE, valueInputOption='USER_ENTERED', body=body)
-  # request.execute()
+  request = values_api.update(spreadsheetId=spreadsheet_id, range=RANGE, valueInputOption='USER_ENTERED', body=body)
+  request.execute()
 
 
 def is_skill_finished(skill):

@@ -8,34 +8,68 @@ from google.oauth2 import service_account
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SECRET_FILE = os.path.expanduser('~/.duolingo-tracker-client.json')
-DAY_ZERO = datetime.datetime(1899, 12, 30)
 RANGE = 'Sheet1'
 
-PP = pprint.PrettyPrinter(indent=2, width=40)
+PP = pprint.PrettyPrinter(indent=2, depth=15)
 
-CELL_REGEX=re.compile(r'([A-Z]\$?)([\d+])')
-
-def update_formulas(values):
-  for (i, row) in enumerate(values[2:]):
-    for (j, cell) in enumerate(row):
-      if isinstance(cell, str) and cell.startswith('='):
-        row[j] = CELL_REGEX.sub(lambda m: m.group(1) + str(int(m.group(2)) + 1), cell)
+CELL_REGEX = re.compile(r'([A-Z]\$?)([\d+])')
 
 
 def update_sheet(spreadsheet_id):
   credentials = service_account.Credentials.from_service_account_file(SECRET_FILE, scopes=SCOPES)
-  service = discovery.build('sheets', 'v4', credentials=credentials)
-  values_api = service.spreadsheets().values()
-  request = values_api.get(spreadsheetId=spreadsheet_id, range=RANGE, valueRenderOption='FORMULA')
-  response = request.execute()
-  values = response['values']
+  spreadsheets = discovery.build('sheets', 'v4', credentials=credentials).spreadsheets()
 
-  values.insert(1, values[1].copy())
+  values = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range=RANGE, valueRenderOption='FORMULA').execute()['values']
+  row = len(values)
+  col = len(values[row - 1])
 
-  PP.pprint(values)
-  update_formulas(values)
+  request = {
+    "requests": [
+      {
+        "copyPaste": {
+          "source": {
+            "sheetId": 0,
+            "startRowIndex": 1,
+            "endRowIndex": row,
+            "startColumnIndex": 0,
+            "endColumnIndex": col,
+          },
+          "destination": {
+            "sheetId": 0,
+            "startRowIndex": 2,
+            "endRowIndex": 3,
+            "startColumnIndex": 0,
+            "endColumnIndex": col,
+          },
+          "pasteOrientation": "NORMAL",
+          "pasteType": "PASTE_NORMAL"
+        },
+      },
+      {
+        "updateCells": {
+          "rows": [
+            {
+              "values": [
+                {
+                  "userEnteredValue": {
+                    "numberValue": row
+                  }
+                }
+              ]
+            }
+          ],
+          "start": {
+            "sheetId": 0,
+            "rowIndex": 1,
+            "columnIndex": 0,
+          },
+          "fields": "*"
+        }
 
-  PP.pprint(values)
+      }
+    ]
+  }
+  spreadsheets.batchUpdate(spreadsheetId=spreadsheet_id, body=request).execute()
 
 
 
