@@ -44,13 +44,14 @@ def update_sheet(spreadsheet_id, date, lessons_xp, stories_xp, to_go):
   response = request.execute()
   values = response['values']
   span = date - DAY_ZERO
-  values.insert(1, values[1].copy())
+  if values[1][0] != span.days:
+    values.insert(1, values[1].copy())
+    update_formulas(values)
   values[1][0] = span.days
   values[1][1] = lessons_xp
   values[1][2] = stories_xp
   values[1][3] = to_go
 
-  update_formulas(values)
 
   body = {
     'values': values
@@ -123,8 +124,7 @@ if __name__ == '__main__':
     status_file = None
 
   now = datetime.datetime.now()
-  if now.hour < 2:
-    now = datetime.datetime(now.year, now.month, now.day - 1)
+  now = datetime.datetime(now.year, now.month, now.day)
 
   date = now.strftime("%Y-%m-%d (%a)")
   is_html = args.html
