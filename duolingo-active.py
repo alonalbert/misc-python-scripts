@@ -21,8 +21,8 @@ RANGE = 'Log!A:G'
 
 PP = pprint.PrettyPrinter(indent=2)
 
-CELL_REGEX_FOR_NEW_ROW = re.compile(r'([A-Z]\$)([\d+])')
-CELL_REGEX_FOR_OLD_ROWS = re.compile(r'([A-Z]\$?)([\d+])')
+CELL_REGEX_FOR_NEW_ROW = re.compile(r'([A-Z]\$)(\d+)')
+CELL_REGEX_FOR_OLD_ROWS = re.compile(r'([A-Z]\$?)(\d+)')
 
 
 def undate_formulas_in_row(row, regex):
