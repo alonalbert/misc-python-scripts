@@ -183,7 +183,7 @@ if __name__ == '__main__':
         if (now - time).days > 0:
             break
         xp = xp_gain['xp']
-        is_story = 10 < xp < 50
+        is_story = 20 < xp < 50
         if is_story:
             stories_xp_24h += xp
         else:
