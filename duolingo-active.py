@@ -17,7 +17,7 @@ LOG_HEADER = LOG_FORMAT % ('Date', 'Lessons XP', 'Stories XP', 'To go')
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SECRET_FILE = os.path.expanduser('~/.duolingo-tracker-client.json')
 DAY_ZERO = datetime.datetime(1899, 12, 30)
-RANGE = 'Backup'
+RANGE = 'Log'
 
 PP = pprint.PrettyPrinter(indent=2)
 
