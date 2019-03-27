@@ -17,7 +17,7 @@ LOG_HEADER = LOG_FORMAT % ('Date', 'Lessons XP', 'Stories XP', 'To go')
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SECRET_FILE = os.path.expanduser('~/.duolingo-tracker-client.json')
 DAY_ZERO = datetime.datetime(1899, 12, 30)
-RANGE = 'Log!A:G'
+RANGE = 'Backup'
 
 PP = pprint.PrettyPrinter(indent=2)
 
@@ -37,7 +37,7 @@ def update_formulas(values):
         undate_formulas_in_row(row, CELL_REGEX_FOR_OLD_ROWS)
 
 
-def update_sheet(spreadsheet_id, date, lessons_xp, stories_xp, to_go):
+def update_sheet(spreadsheet_id, date, lessons_xp, bonus_xp, stories_xp, to_go):
     credentials = service_account.Credentials.from_service_account_file(SECRET_FILE, scopes=SCOPES)
     service = discovery.build('sheets', 'v4', credentials=credentials)
     values_api = service.spreadsheets().values()
@@ -53,8 +53,9 @@ def update_sheet(spreadsheet_id, date, lessons_xp, stories_xp, to_go):
     if new_day or values[1][1] != lessons_xp or values[1][2] != stories_xp or values[1][3] != to_go:
         values[1][0] = span.days + (span.seconds / (24 * 60 * 60))
         values[1][1] = lessons_xp
-        values[1][2] = stories_xp
-        values[1][3] = to_go
+        values[1][2] = bonus_xp
+        values[1][3] = stories_xp
+        values[1][4] = to_go
 
         body = {
             'values': values
@@ -169,11 +170,9 @@ if __name__ == '__main__':
         print('</tbody></table>')
 
     xp_gains = duo.get_xp_gains()
-    lessons_xp_24h = 0
-    stories_xp_24h = 0
-
-    lessons_xp_today = 0
-    stories_xp_today = 0
+    lessons_xp = 0
+    bonus_xp = 0
+    stories_xp = 0
 
     from_date = datetime.datetime(now.year, now.month, now.day)
     to_date = from_date + datetime.timedelta(days=1)
@@ -184,24 +183,19 @@ if __name__ == '__main__':
             break
         xp = xp_gain['xp']
         is_story = 20 < xp < 50
-        if is_story:
-            stories_xp_24h += xp
-        else:
-            lessons_xp_24h += xp
 
         if from_date <= time < to_date:
             if is_story:
-                stories_xp_today += xp
+                stories_xp += xp
             else:
-                lessons_xp_today += xp
+              lessons_xp += 10
+              bonus_xp += xp - 10
 
     print_line(is_html, 'Almost finished: %d Active: %s' % (almost_finished, active))
-    print_line(is_html, 'XP Gained in Last 24 Hours:')
-    print_line(is_html, '  Lessons %d:' % lessons_xp_24h)
-    print_line(is_html, '  Stories %d:' % stories_xp_24h)
     print_line(is_html, 'XP Gained today:')
-    print_line(is_html, '  Lessons %d:' % lessons_xp_today)
-    print_line(is_html, '  Stories %d:' % stories_xp_today)
+    print_line(is_html, '  Lessons %d:' % lessons_xp)
+    print_line(is_html, '  Bonus %d:' % bonus_xp)
+    print_line(is_html, '  Stories %d:' % stories_xp)
     lessons_to_go = get_uncompleted_lessons_count(duo.skills)
     print_line(is_html, 'Lessons to go: %d' % lessons_to_go)
 
@@ -212,4 +206,4 @@ if __name__ == '__main__':
         status_file.close()
 
     if args.sheet:
-        update_sheet(args.sheet, now, lessons_xp_today, stories_xp_today, lessons_to_go)
+        update_sheet(args.sheet, now, lessons_xp, bonus_xp, stories_xp, lessons_to_go)
