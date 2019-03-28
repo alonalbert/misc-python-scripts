@@ -25,19 +25,19 @@ CELL_REGEX_FOR_NEW_ROW = re.compile(r'([A-Z]\$)(\d+)')
 CELL_REGEX_FOR_OLD_ROWS = re.compile(r'([A-Z]\$?)(\d+)')
 
 
-def undate_formulas_in_row(row, regex):
+def undated_formulas_in_row(row, regex):
     for (j, cell) in enumerate(row):
         if isinstance(cell, str) and cell.startswith('='):
             row[j] = regex.sub(lambda m: m.group(1) + str(int(m.group(2)) + 1), cell)
 
 
 def update_formulas(values):
-    undate_formulas_in_row(values[1], CELL_REGEX_FOR_NEW_ROW)
+    undated_formulas_in_row(values[1], CELL_REGEX_FOR_NEW_ROW)
     for (i, row) in enumerate(values[2:]):
-        undate_formulas_in_row(row, CELL_REGEX_FOR_OLD_ROWS)
+        undated_formulas_in_row(row, CELL_REGEX_FOR_OLD_ROWS)
 
 
-def update_sheet(spreadsheet_id, date, lessons_xp, bonus_xp, stories_xp, to_go):
+def update_sheet(spreadsheet_id, date, lessons_xp, bonus_xp, stories_xp, finished, total):
     credentials = service_account.Credentials.from_service_account_file(SECRET_FILE, scopes=SCOPES)
     service = discovery.build('sheets', 'v4', credentials=credentials)
     values_api = service.spreadsheets().values()
@@ -50,12 +50,18 @@ def update_sheet(spreadsheet_id, date, lessons_xp, bonus_xp, stories_xp, to_go):
         values.insert(1, values[1].copy())
         update_formulas(values)
 
-    if new_day or values[1][1] != lessons_xp or values[1][2] != stories_xp or values[1][3] != to_go:
+    if new_day \
+            or values[1][1] != lessons_xp \
+            or values[1][2] != bonus_xp \
+            or values[1][3] != stories_xp \
+            or values[1][4] != finished \
+            or values[1][5] != total:
         values[1][0] = span.days + (span.seconds / (24 * 60 * 60))
         values[1][1] = lessons_xp
         values[1][2] = bonus_xp
         values[1][3] = stories_xp
-        values[1][4] = to_go
+        values[1][4] = finished
+        values[1][5] = total
 
         body = {
             'values': values
@@ -78,9 +84,9 @@ def is_skill_almost_finished(skill):
     return finished_levels == 4 and 20 > finished_lessons >= 10
 
 
-def get_uncompleted_lessons_count(skills):
-    course_total = 0
-    course_finished = 0
+def get_lessons_counts(skills):
+    total = 0
+    finished = 0
     for skill in skills:
         levels = skill['levels']
         lessons = skill['lessons']
@@ -94,10 +100,10 @@ def get_uncompleted_lessons_count(skills):
             skill_total = base_lessons * Duo.LESSONS_TOTAL[levels]
             skill_finished = Duo.LESSONS_TOTAL[finished_levels] * base_lessons + finished_lessons
 
-        course_total += skill_total
-        course_finished += skill_finished
+        total += skill_total
+        finished += skill_finished
 
-    return int(course_total - course_finished)
+    return finished, total
 
 
 def print_line(is_html, line):
@@ -196,8 +202,8 @@ if __name__ == '__main__':
     print_line(is_html, '  Lessons %d:' % lessons_xp)
     print_line(is_html, '  Bonus %d:' % bonus_xp)
     print_line(is_html, '  Stories %d:' % stories_xp)
-    lessons_to_go = get_uncompleted_lessons_count(duo.skills)
-    print_line(is_html, 'Lessons to go: %d' % lessons_to_go)
+    finished, total = get_lessons_counts(duo.skills)
+    print_line(is_html, 'Lessons: %d/%d' % (finished, total))
 
     if is_html:
         print('</body></html>')
@@ -206,4 +212,4 @@ if __name__ == '__main__':
         status_file.close()
 
     if args.sheet:
-        update_sheet(args.sheet, now, lessons_xp, bonus_xp, stories_xp, lessons_to_go)
+        update_sheet(args.sheet, now, lessons_xp, bonus_xp, stories_xp, finished, total)
