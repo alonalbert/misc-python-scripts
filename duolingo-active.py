@@ -194,8 +194,11 @@ if __name__ == '__main__':
             if is_story:
                 stories_xp += xp
             else:
-              lessons_xp += 10
-              bonus_xp += xp - 10
+                if xp == 20:
+                    lessons_xp += 20
+                else:
+                    lessons_xp += 10
+                    bonus_xp += xp - 10
 
     print_line(is_html, 'Almost finished: %d Active: %s' % (almost_finished, active))
     print_line(is_html, 'XP Gained today:')
@@ -203,6 +206,7 @@ if __name__ == '__main__':
     print_line(is_html, '  Bonus %d:' % bonus_xp)
     print_line(is_html, '  Stories %d:' % stories_xp)
     finished, total = get_lessons_counts(duo.skills)
+    print_line(is_html, 'Skills: %d' % len(duo.skills))
     print_line(is_html, 'Lessons: %d/%d' % (finished, total))
 
     if is_html:
