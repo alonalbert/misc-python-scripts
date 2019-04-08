@@ -2,6 +2,8 @@
 
 import argparse
 import datetime
+import gzip
+import json
 import os
 import pprint
 import re
@@ -124,6 +126,11 @@ if __name__ == '__main__':
     parser.add_argument('--no-html', dest='html', help='Print status in text', action='store_false')
     parser.set_defaults(html=False)
 
+    parser.add_argument('--out', help='Output dir', default=None)
+    parser.add_argument('--zip', dest='zip', help='Zip data', action='store_true')
+    parser.add_argument('--no-zip', dest='zip', help="Don't zip data", action='store_false')
+    parser.set_defaults(zip=False)
+
     args = parser.parse_args()
 
     duo = Duo(args.user)
@@ -217,3 +224,20 @@ if __name__ == '__main__':
 
     if args.sheet:
         update_sheet(args.sheet, now, lessons_xp, bonus_xp, stories_xp, finished, total)
+
+
+    if args.out is not None:
+        dataJson = json.dumps(duo.get_data(), indent=2)
+        os.makedirs(args.out, exist_ok=True)
+        ext = 'gz' if args.zip else 'json'
+        adjustedNow = now - datetime.timedelta(minutes=1)
+        filename = adjustedNow.strftime('%Y-%m-%d-duolingo-data.') + ext
+        if args.zip:
+            writer = gzip.open
+            data = dataJson.encode()
+        else:
+            writer = open
+            data = dataJson
+        with writer(os.path.join(args.out, filename), 'w') as f:
+            f.write(data)
+
