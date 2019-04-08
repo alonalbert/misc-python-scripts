@@ -42,6 +42,9 @@ class Duo:
   def _get_headers(self):
     return {'authorization': 'Bearer %s' % self._token}
 
+  def get_data(self):
+    return self._data
+
   def get_skills(self):
     return self.skills
 
@@ -137,5 +140,8 @@ class Duo:
 
 if __name__ == '__main__':
   duo = Duo('AlonAlbert')
+  # duo.get_tips()
+  print(len(duo.get_skills()))
+  # print(json.dumps(duo.get_data(), indent=2))
   duo.get_session()
   # duo.print_topics()
