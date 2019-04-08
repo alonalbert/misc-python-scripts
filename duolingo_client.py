@@ -8,6 +8,7 @@ import textwrap
 BASE_URL = 'https://www.duolingo.com'
 LOGIN_URL = BASE_URL + '/login'
 URL = BASE_URL + '/2017-06-30/users/%s?fields=currentCourse,xpGains'
+SESSION_URL = BASE_URL + '/2017-06-30/sessions'
 
 
 def get_password():
@@ -27,16 +28,19 @@ class Duo:
       i += 1
 
     login_response = requests.post(LOGIN_URL, data={'login': username, 'password': password})
-    token = login_response.headers['jwt']
+    self._token = login_response.headers['jwt']
     user_id = json.loads(login_response.content.decode("utf-8"))['user_id']
 
     url = URL % user_id
-    self._data = json.loads(requests.get(url, headers={'authorization': 'Bearer %s' % token}).content.decode("utf-8"))
+    self._data = json.loads(requests.get(url, headers=self._get_headers()).content.decode("utf-8"))
     self.skills = []
     for row in self._data['currentCourse']['skills']:
       for skill in row:
         if skill.get('accessible', False):
           self.skills.append(skill)
+
+  def _get_headers(self):
+    return {'authorization': 'Bearer %s' % self._token}
 
   def get_skills(self):
     return self.skills
@@ -94,7 +98,44 @@ class Duo:
               f.write('%s\n' % textwrap.fill(text.encode('utf8')))
               first = False
 
+  def get_session(self):
+    data = {
+      "fromLanguage": "en",
+      "learningLanguage": "es",
+      "challengeTypes": [
+        "characterIntro",
+        "characterMatch",
+        "characterSelect",
+        "dialogue",
+        "form",
+        "gapFill",
+        # "judge",
+        # "listen",
+        "name",
+        "listenComprehension",
+        "listenTap",
+        "readComprehension",
+        "select",
+        "selectPronunciation",
+        "selectRecording",
+        "selectTranscription",
+        "tapCloze",
+        "translate",
+      ],
+      "type": "GLOBAL_PRACTICE",
+      "juicy": False
+    }
+    content = requests.post(SESSION_URL, headers=self._get_headers(), data=json.dumps(data)).content.decode("utf-8")
+    session = json.loads(content)
+
+    challenges = session['challenges']
+    for i, challenge in enumerate(challenges):
+      print('%d: %s from %s' % (i, challenge['type'], challenge['sourceLanguage']))
+
+    # print(json.dumps(challenges[0], indent=2))
+
+
 if __name__ == '__main__':
   duo = Duo('AlonAlbert')
-  # duo.get_tips()
+  duo.get_session()
   # duo.print_topics()

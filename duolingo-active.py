@@ -149,7 +149,7 @@ if __name__ == '__main__':
             if is_skill_almost_finished(skill):
                 almost_finished += 1
             continue
-        if finished_levels < 3 and finished_lessons == 0:
+        if finished_levels == 0 and finished_lessons == 0:
             break
         active += 1
         name = skill['name']
