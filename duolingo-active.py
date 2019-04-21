@@ -239,7 +239,7 @@ if __name__ == '__main__':
       break
     active += 1
     name = skill['title']
-    lessons = skill['num_lessons']
+    lessons = skill['num_sessions_for_level']
     strength = int(skill['strength'] * 100)
     total_finished_levels = duo.get_num_finished_lessons(skill)
 
