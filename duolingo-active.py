@@ -170,13 +170,14 @@ class Row:
   def print(self):
     next = '  <====' if self.is_next else ''
     if is_html:
-      print('<tr style="background: %s">' % LEVEL_COLOR[self.finished_levels])
-      print('  <td>%s</td>' % self.index)
-      print('  <td>%s</td>' % self.name)
-      print('  <td>Level %s</td>' % self.finished_levels)
-      print('  <td>Lesson %s/%s</td>' % (self.finished_lessons, self.lessons))
-      print('  <td>%s%%</td>' % self.strength)
-      print('  <td>%d %s</td>' % (self.total_finished_levels, next))
+      print('<tr style="background: %s; font-weight: %s">' % (LEVEL_COLOR[self.finished_levels], 'bold' if self.is_next else 'normal'))
+      print('  <td style="padding:0 10px">%s</td>' % self.index)
+      print('  <td style="padding"0 10px">%s</td>' % self.name)
+      # print('  <td style="padding"0 10px">Level %s</td>' % self.finished_levels)
+      print('  <td style="padding:0 10px">%s/%s</td>' % (self.finished_lessons, self.lessons))
+      print('  <td style="padding:0 10px">%s%%</td>' % self.strength)
+      print('  <td style="padding:0 10px">%d</td>' % (self.total_finished_levels))
+      print('  <td style="background: #ffffff; padding:0 10px">%s</td>' % (next))
       print('</tr>')
     else:
       print('  %-3d: %-40s Level %d Lesson %2d/%02d  %-4d %3d%% %s' % (
@@ -246,12 +247,11 @@ if __name__ == '__main__':
     if n == 0:
       is_next = True
     else:
-      prev_row = rows[n - 1]
-      if prev_row.total_finished_levels == total_finished_levels + 5:
+      if rows[n - 1].total_finished_levels == total_finished_levels + 5:
         is_next = True
-        prev_row.is_next = False
+        (rows[0]).is_next = False
       else:
-        is_next =False
+        is_next = False
 
     rows.append(Row(index, name, finished_levels, finished_lessons, lessons, total_finished_levels, strength, is_html, is_next))
 
