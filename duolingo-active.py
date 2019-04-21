@@ -48,8 +48,10 @@ class Duo():
     self._data = json.loads(requests.get(url).content.decode("utf-8"))
 
   def get_skills(self):
-    skills = self._data['language_data']['es']['skills']
-    return sorted(skills, key=lambda skill: skill['coords_y'] * 1000 + skill['coords_x'])
+    language_data = self._data['language_data']['es']
+    skills = language_data['skills']
+    bonus_skills = language_data['bonus_skills']
+    return sorted(skills + bonus_skills, key=lambda skill: skill['coords_y'] * 1000 + skill['coords_x'])
 
   def get_xp_gains(self):
     return self._data['language_data']['es']['calendar']
@@ -126,7 +128,7 @@ def get_lessons_counts(skills):
   finished = 0
   for skill in skills:
     levels = skill['num_levels']
-    lessons = skill['num_lessons']
+    lessons = skill['num_sessions_for_level']
     finished_levels = skill['levels_finished']
     finished_lessons = skill['level_sessions_finished']
     if finished_levels == levels:
