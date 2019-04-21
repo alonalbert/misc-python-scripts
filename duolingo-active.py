@@ -33,6 +33,7 @@ PP = pprint.PrettyPrinter(indent=2)
 CELL_REGEX_FOR_NEW_ROW = re.compile(r'([A-Z]\$)(\d+)')
 CELL_REGEX_FOR_OLD_ROWS = re.compile(r'([A-Z]\$?)(\d+)')
 
+
 class Duo():
   LESSONS = [1, 1, 2, 3, 5]
   LESSONS_TOTAL = []
@@ -56,9 +57,10 @@ class Duo():
   def get_xp_gains(self):
     return self._data['language_data']['es']['calendar']
 
-  def get_nam_finished_lessons(self, skill):
+  def get_num_finished_lessons(self, skill):
     level = skill['levels_finished']
-    return self.LESSONS_TOTAL[level] * skill['num_sessions_for_level'] / self.LESSONS[level]  + skill['level_sessions_finished']
+    return self.LESSONS_TOTAL[level] * skill['num_sessions_for_level'] / self.LESSONS[level] + skill[
+      'level_sessions_finished']
 
   def get_data(self):
     return self._data
@@ -152,6 +154,35 @@ def print_line(is_html, line):
     print(line)
 
 
+class Row:
+  def __init__(self, index, name, finished_levels, finished_lessons, lessons, total_finished_levels, strength, is_html,
+               is_next):
+    self.index = index
+    self.name = name
+    self.finished_levels = finished_levels
+    self.finished_lessons = finished_lessons
+    self.lessons = lessons
+    self.total_finished_levels = total_finished_levels
+    self.strength = strength
+    self._is_html = is_html
+    self.is_next = is_next
+
+  def print(self):
+    next = '  <====' if self.is_next else ''
+    if is_html:
+      print('<tr style="background: %s">' % LEVEL_COLOR[self.finished_levels])
+      print('  <td>%s</td>' % self.index)
+      print('  <td>%s</td>' % self.name)
+      print('  <td>Level %s</td>' % self.finished_levels)
+      print('  <td>Lesson %s/%s</td>' % (self.finished_lessons, self.lessons))
+      print('  <td>%s%%</td>' % self.strength)
+      print('  <td>%d %s</td>' % (self.total_finished_levels, next))
+      print('</tr>')
+    else:
+      print('  %-3d: %-40s Level %d Lesson %2d/%02d  %-4d %3d%% %s' % (
+        self.index, self.name, self.finished_levels, self.finished_lessons, self.lessons, self.total_finished_levels,
+        self.strength, next))
+
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Daily Duolingo Activity.')
@@ -194,7 +225,8 @@ if __name__ == '__main__':
   active = 0
   skills = duo.get_skills()
   total_finished_levels = 0
-  for i, skill in enumerate(skills):
+  rows = []
+  for index, skill in enumerate(skills):
     levels = skill['num_levels']
     finished_levels = skill['levels_finished']
     finished_lessons = skill['level_sessions_finished']
@@ -208,19 +240,24 @@ if __name__ == '__main__':
     name = skill['title']
     lessons = skill['num_lessons']
     strength = int(skill['strength'] * 100)
-    total_finished_levels = duo.get_nam_finished_lessons(skill)
-    if is_html:
-      print('<tr style="background: %s">' % LEVEL_COLOR[finished_levels])
-      print('  <td>%s</td>' % i)
-      print('  <td>%s</td>' % name)
-      print('  <td>Level %s</td>' % finished_levels)
-      print('  <td>Lesson %s/%s</td>' % (finished_lessons, lessons))
-      print('  <td>%s%%</td>' % strength)
-      print('  <td>%d</td>' % total_finished_levels)
-      print('</tr>')
+    total_finished_levels = duo.get_num_finished_lessons(skill)
+
+    n = len(rows)
+    if n == 0:
+      is_next = True
     else:
-      print('  %-3d: %-40s Level %d Lesson %2d/%02d  %-4d %3d%%' % (
-        i, name, finished_levels, finished_lessons, lessons, total_finished_levels, strength))
+      prev_row = rows[n - 1]
+      if prev_row.total_finished_levels == total_finished_levels + 5:
+        is_next = True
+        prev_row.is_next = False
+      else:
+        is_next =False
+
+    rows.append(Row(index, name, finished_levels, finished_lessons, lessons, total_finished_levels, strength, is_html, is_next))
+
+  for row in rows:
+    row.print()
+
   if is_html:
     print('</tbody></table>')
 
@@ -233,7 +270,7 @@ if __name__ == '__main__':
   to_date = from_date + datetime.timedelta(days=1)
 
   for xp_gain in reversed(xp_gains):
-    time = datetime.datetime.fromtimestamp(xp_gain['datetime']/1000)
+    time = datetime.datetime.fromtimestamp(xp_gain['datetime'] / 1000)
     if (now - time).days > 0:
       break
     xp = xp_gain['improvement']
