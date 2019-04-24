@@ -13,6 +13,8 @@ import requests
 from apiclient import discovery
 from google.oauth2 import service_account
 
+ALMOST_FINISHED = 12
+
 LOG_FORMAT = '%-20s %-15s %-15s %-10s\n'
 LOG_HEADER = LOG_FORMAT % ('Date', 'Lessons XP', 'Stories XP', 'To go')
 
@@ -116,13 +118,13 @@ def is_skill_finished(skill):
   levels = skill['num_levels']
   finished_levels = skill['levels_finished']
   finished_lessons = skill['level_sessions_finished']
-  return finished_levels == levels or finished_levels == 4 and finished_lessons >= 10
+  return finished_levels == levels or finished_levels == 4 and finished_lessons >= ALMOST_FINISHED
 
 
 def is_skill_almost_finished(skill):
   finished_levels = skill['levels_finished']
   finished_lessons = skill['level_sessions_finished']
-  return finished_levels == 4 and 20 > finished_lessons >= 10
+  return finished_levels == 4 and 20 > finished_lessons >= ALMOST_FINISHED
 
 
 def get_lessons_counts(skills):
