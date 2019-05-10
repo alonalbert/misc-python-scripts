@@ -19,6 +19,7 @@ LOG_FORMAT = '%-20s %-15s %-15s %-10s\n'
 LOG_HEADER = LOG_FORMAT % ('Date', 'Lessons XP', 'Stories XP', 'To go')
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+CONFIG_FILE = os.path.expanduser('~/.duolingo')
 SECRET_FILE = os.path.expanduser('~/.duolingo-tracker-client.json')
 DAY_ZERO = datetime.datetime(1899, 12, 30)
 RANGE = 'Log'
@@ -40,7 +41,7 @@ class Duo():
   LESSONS = [1, 1, 2, 3, 5]
   LESSONS_TOTAL = []
 
-  def __init__(self, username):
+  def __init__(self, username, token):
     self.LESSONS_TOTAL.append(0)
     i = 0
     for _ in self.LESSONS:
@@ -48,7 +49,7 @@ class Duo():
       i += 1
 
     url = 'https://www.duolingo.com/users/' + username
-    self._data = json.loads(requests.get(url).content.decode("utf-8"))
+    self._data = json.loads(requests.get(url, cookies={'jwt_token': token}).content.decode("utf-8"))
 
   def get_skills(self):
     language_data = self._data['language_data']['es']
@@ -190,7 +191,6 @@ class Row:
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Daily Duolingo Activity.')
 
-  parser.add_argument('user', help='Duolingo user name')
   parser.add_argument('--sheet', help='Google sheet for daily log')
   parser.add_argument('--status_file', help='Status file name', default=None)
 
@@ -205,7 +205,10 @@ if __name__ == '__main__':
 
   args = parser.parse_args()
 
-  duo = Duo(args.user)
+  with open(CONFIG_FILE) as f:
+    config = json.load(f)
+
+  duo = Duo(config['user'], config['token'])
 
   if args.status_file:
     status_file = open(args.status_file, 'w')
