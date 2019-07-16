@@ -60,6 +60,10 @@ class Duo():
   def get_xp_gains(self):
     return self._data['language_data']['es']['calendar']
 
+  def get_total_lessons_for_skill(self, skill):
+    level = skill['levels_finished']
+    return int(skill['num_sessions_for_level'] / self.LESSONS[level] * self.LESSONS_TOTAL[len(self.LESSONS_TOTAL) - 1])
+
   def get_num_finished_lessons(self, skill):
     level = skill['levels_finished']
     return self.LESSONS_TOTAL[level] * skill['num_sessions_for_level'] / self.LESSONS[level] + skill[
@@ -158,7 +162,8 @@ def print_line(is_html, line):
 
 
 class Row:
-  def __init__(self, index, name, finished_levels, finished_lessons, lessons, total_finished_levels, strength, is_html,
+  def __init__(self, index, name, finished_levels, finished_lessons, lessons, total_finished_levels,
+               total_lessons_for_skill, strength, is_html,
                is_next):
     self.index = index
     self.name = name
@@ -166,6 +171,7 @@ class Row:
     self.finished_lessons = finished_lessons
     self.lessons = lessons
     self.total_finished_levels = total_finished_levels
+    self.total_lessons_for_skill = total_lessons_for_skill
     self.strength = strength
     self._is_html = is_html
     self.is_next = is_next
@@ -173,19 +179,27 @@ class Row:
   def print(self):
     next = '  <====' if self.is_next else ''
     if is_html:
-      print('<tr style="background: %s; font-weight: %s">' % (LEVEL_COLOR[self.finished_levels], 'bold' if self.is_next else 'normal'))
+      print('<tr style="background: %s; font-weight: %s">' % (
+      LEVEL_COLOR[self.finished_levels], 'bold' if self.is_next else 'normal'))
       print('  <td style="padding:0 10px">%s</td>' % self.index)
       print('  <td style="padding"0 10px">%s</td>' % self.name)
       # print('  <td style="padding"0 10px">Level %s</td>' % self.finished_levels)
       print('  <td style="padding:0 10px">%s/%s</td>' % (self.finished_lessons, self.lessons))
       print('  <td style="padding:0 10px">%s%%</td>' % self.strength)
-      print('  <td style="padding:0 10px">%d</td>' % (self.total_finished_levels))
+      print('  <td style="padding:0 10px">%d /</td>' % (self.total_finished_levels))
+      print('  <td style="padding:0 10px">%d</td>' % (self.total_lessons_for_skill))
       print('  <td style="background: #ffffff; padding:0 10px">%s</td>' % (next))
       print('</tr>')
     else:
-      print('  %-3d: %-40s Level %d Lesson %2d/%02d  %-4d %3d%% %s' % (
-        self.index, self.name, self.finished_levels, self.finished_lessons, self.lessons, self.total_finished_levels,
-        self.strength, next))
+      print('  %-3d: %-40s Level %d Lesson %2d/%02d  %-8s %3d%% %s' % (
+        self.index,
+        self.name,
+        self.finished_levels,
+        self.finished_lessons,
+        self.lessons,
+        '%4d/%d' % (self.total_finished_levels, self.total_lessons_for_skill),
+        self.strength,
+        next))
 
 
 if __name__ == '__main__':
@@ -247,7 +261,7 @@ if __name__ == '__main__':
     lessons = skill['num_sessions_for_level']
     strength = int(skill['strength'] * 100)
     total_finished_levels = duo.get_num_finished_lessons(skill)
-
+    total_lessons_for_skill = duo.get_total_lessons_for_skill(skill)
     n = len(rows)
     if n == 0:
       is_next = True
@@ -258,7 +272,9 @@ if __name__ == '__main__':
       else:
         is_next = False
 
-    rows.append(Row(index, name, finished_levels, finished_lessons, lessons, total_finished_levels, strength, is_html, is_next))
+    rows.append(
+      Row(index, name, finished_levels, finished_lessons, lessons, total_finished_levels, total_lessons_for_skill,
+          strength, is_html, is_next))
 
   for row in rows:
     row.print()
