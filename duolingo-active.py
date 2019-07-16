@@ -274,14 +274,16 @@ if __name__ == '__main__':
   from_date = datetime.datetime(now.year, now.month, now.day)
   to_date = from_date + datetime.timedelta(days=1)
 
+  xp_total = 0
   for xp_gain in reversed(xp_gains):
     time = datetime.datetime.fromtimestamp(xp_gain['datetime'] / 1000)
     if (now - time).days > 0:
       break
-    xp = xp_gain['improvement']
-    is_story = 20 < xp < 50
-
     if from_date <= time < to_date:
+      xp = xp_gain['improvement']
+      xp_total += xp
+      is_story = 20 < xp < 50
+
       if is_story:
         stories_xp += xp
       else:
@@ -292,7 +294,7 @@ if __name__ == '__main__':
           bonus_xp += xp - 10
 
   print_line(is_html, 'Almost finished: %d Active: %s' % (almost_finished, active))
-  print_line(is_html, 'XP Gained today:')
+  print_line(is_html, 'XP Gained today: %d' % xp_total)
   print_line(is_html, '  Lessons %d:' % lessons_xp)
   print_line(is_html, '  Bonus %d:' % bonus_xp)
   print_line(is_html, '  Stories %d:' % stories_xp)
