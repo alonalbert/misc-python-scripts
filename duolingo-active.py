@@ -266,11 +266,12 @@ if __name__ == '__main__':
     if n == 0:
       is_next = True
     else:
-      if rows[n - 1].total_finished_levels == total_finished_levels + 5:
-        is_next = True
-        (rows[0]).is_next = False
-      else:
-        is_next = False
+      is_next = False
+      for i in range(1, n -1, 1):
+        if rows[n - i].total_finished_levels == total_finished_levels + 5 * i:
+          is_next = True
+          (rows[0]).is_next = False
+          break
 
     rows.append(
       Row(index, name, finished_levels, finished_lessons, lessons, total_finished_levels, total_lessons_for_skill,
