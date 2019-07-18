@@ -162,9 +162,10 @@ def print_line(is_html, line):
 
 
 class Row:
-  def __init__(self, index, name, finished_levels, finished_lessons, lessons, total_finished_levels,
+  def __init__(self, skill, index, name, finished_levels, finished_lessons, lessons, total_finished_levels,
                total_lessons_for_skill, strength, is_html,
                is_next):
+    self.skill = skill
     self.index = index
     self.name = name
     self.finished_levels = finished_levels
@@ -177,18 +178,25 @@ class Row:
     self.is_next = is_next
 
   def print(self):
-    next = '  <====' if self.is_next else ''
     if is_html:
       print('<tr style="background: %s; font-weight: %s">' % (
-      LEVEL_COLOR[self.finished_levels], 'bold' if self.is_next else 'normal'))
+        LEVEL_COLOR[self.finished_levels], 'bold' if self.is_next else 'normal'))
       print('  <td style="padding:0 10px">%s</td>' % self.index)
       print('  <td style="padding"0 10px">%s</td>' % self.name)
       # print('  <td style="padding"0 10px">Level %s</td>' % self.finished_levels)
       print('  <td style="padding:0 10px">%s/%s</td>' % (self.finished_lessons, self.lessons))
       print('  <td style="padding:0 10px">%s%%</td>' % self.strength)
-      print('  <td style="padding:0 10px">%d /</td>' % (self.total_finished_levels))
-      print('  <td style="padding:0 10px">%d</td>' % (self.total_lessons_for_skill))
-      print('  <td style="background: #ffffff; padding:0 10px">%s</td>' % (next))
+      print('  <td style="padding:0 0px, 0, 10px; text-align: right">%d</td>' % (self.total_finished_levels))
+      print('  <td style="padding:0 3px">/</td>')
+      print('  <td style="padding:0 10px 0 0px">%d</td>' % (self.total_lessons_for_skill))
+      if self.is_next:
+        text = '<====='
+        href = 'https://www.duolingo.com/skill/%s/%s/%d' % (
+        self.skill['language'], self.skill['url_title'], self.finished_lessons + 1)
+
+        print(
+          '  <td style="background: #ffffff; padding:0 10px;"><a href="%s" style="text-decoration: none;">%s</a></td>' % (
+            href, text))
       print('</tr>')
     else:
       print('  %-3d: %-40s Level %d Lesson %2d/%02d  %-8s %3d%% %s' % (
@@ -256,9 +264,6 @@ if __name__ == '__main__':
         almost_finished += 1
       continue
 
-    if finished_levels == 0 and finished_lessons == 0:
-      print(index)
-
     if finished_levels == 0 and finished_lessons == 0 and rows[n - 1].finished_levels == 0:
       break
     active += 1
@@ -271,14 +276,15 @@ if __name__ == '__main__':
       is_next = True
     else:
       is_next = False
-      for i in range(1, n -1, 1):
-        if rows[n - i].total_finished_levels == total_finished_levels + 5 * i:
+      for i in range(1, n - 1, 1):
+        if rows[n - i].total_finished_levels == total_finished_levels + 4 * i + 1:
           is_next = True
           (rows[0]).is_next = False
           break
 
     rows.append(
-      Row(index, name, finished_levels, finished_lessons, lessons, total_finished_levels, total_lessons_for_skill,
+      Row(skill, index, name, finished_levels, finished_lessons, lessons, total_finished_levels,
+          total_lessons_for_skill,
           strength, is_html, is_next))
 
   for row in rows:
