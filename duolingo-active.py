@@ -247,6 +247,7 @@ if __name__ == '__main__':
   total_finished_levels = 0
   rows = []
   for index, skill in enumerate(skills):
+    n = len(rows)
     levels = skill['num_levels']
     finished_levels = skill['levels_finished']
     finished_lessons = skill['level_sessions_finished']
@@ -254,7 +255,11 @@ if __name__ == '__main__':
       if is_skill_almost_finished(skill):
         almost_finished += 1
       continue
+
     if finished_levels == 0 and finished_lessons == 0:
+      print(index)
+
+    if finished_levels == 0 and finished_lessons == 0 and rows[n - 1].finished_levels == 0:
       break
     active += 1
     name = skill['title']
@@ -262,7 +267,6 @@ if __name__ == '__main__':
     strength = int(skill['strength'] * 100)
     total_finished_levels = duo.get_num_finished_lessons(skill)
     total_lessons_for_skill = duo.get_total_lessons_for_skill(skill)
-    n = len(rows)
     if n == 0:
       is_next = True
     else:
