@@ -276,10 +276,11 @@ if __name__ == '__main__':
       is_next = True
     else:
       is_next = False
+      first_row = rows[0]
       for i in range(1, n - 1, 1):
-        if rows[n - i].total_finished_levels == total_finished_levels + 4 * i + 1:
+        if first_row.is_next and rows[n - i].total_finished_levels == total_finished_levels + 4 * i + 1:
           is_next = True
-          (rows[0]).is_next = False
+          first_row.is_next = False
           break
 
     rows.append(
