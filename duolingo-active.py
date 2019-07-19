@@ -207,7 +207,7 @@ class Row:
         self.lessons,
         '%4d/%d' % (self.total_finished_levels, self.total_lessons_for_skill),
         self.strength,
-        next))
+        '  <====' if self.is_next else ''))
 
 
 if __name__ == '__main__':
@@ -277,7 +277,7 @@ if __name__ == '__main__':
     else:
       is_next = False
       first_row = rows[0]
-      for i in range(1, n - 1, 1):
+      for i in range(1, n, 1):
         if first_row.is_next and rows[n - i].total_finished_levels == total_finished_levels + 4 * i + 1:
           is_next = True
           first_row.is_next = False
