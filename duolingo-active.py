@@ -13,8 +13,6 @@ import requests
 from apiclient import discovery
 from google.oauth2 import service_account
 
-ALMOST_FINISHED = 12
-
 LOG_FORMAT = '%-20s %-15s %-15s %-10s\n'
 LOG_HEADER = LOG_FORMAT % ('Date', 'Lessons XP', 'Stories XP', 'To go')
 
@@ -119,17 +117,22 @@ def update_sheet(spreadsheet_id, date, lessons_xp, bonus_xp, stories_xp, finishe
     request.execute()
 
 
+def _almost_finished(skill):
+  lessons = skill['num_sessions_for_level']
+  return lessons / 5 * 3
+
+
 def is_skill_finished(skill):
   levels = skill['num_levels']
   finished_levels = skill['levels_finished']
   finished_lessons = skill['level_sessions_finished']
-  return finished_levels == levels or finished_levels == 4 and finished_lessons >= ALMOST_FINISHED
+  return finished_levels == levels or finished_levels == 4 and finished_lessons >= _almost_finished(skill)
 
 
 def is_skill_almost_finished(skill):
   finished_levels = skill['levels_finished']
   finished_lessons = skill['level_sessions_finished']
-  return finished_levels == 4 and 20 > finished_lessons >= ALMOST_FINISHED
+  return finished_levels == 4 and 20 > finished_lessons >= _almost_finished(skill)
 
 
 def get_lessons_counts(skills):
