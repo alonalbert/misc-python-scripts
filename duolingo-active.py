@@ -267,8 +267,6 @@ if __name__ == '__main__':
         almost_finished += 1
       continue
 
-    if finished_levels == 0 and finished_lessons == 0 and rows[n - 1].finished_levels == 0:
-      break
     active += 1
     name = skill['title']
     lessons = skill['num_sessions_for_level']
