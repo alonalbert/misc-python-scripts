@@ -181,13 +181,14 @@ class Row:
     self.is_next = is_next
 
   def print(self):
+    lessons = self.lessons if self.finished_levels < 4 else _almost_finished(self.skill)
     if is_html:
       print('<tr style="background: %s; font-weight: %s">' % (
         LEVEL_COLOR[self.finished_levels], 'bold' if self.is_next else 'normal'))
       print('  <td style="padding:0 10px">%s</td>' % self.index)
       print('  <td style="padding"0 10px">%s</td>' % self.name)
       # print('  <td style="padding"0 10px">Level %s</td>' % self.finished_levels)
-      print('  <td style="padding:0 10px">%s/%s</td>' % (self.finished_lessons, self.lessons))
+      print('  <td style="padding:0 10px">%s/%s</td>' % (self.finished_lessons, lessons))
       print('  <td style="padding:0 10px">%s%%</td>' % self.strength)
       print('  <td style="padding:0 0px, 0, 10px; text-align: right">%d</td>' % (self.total_finished_levels))
       print('  <td style="padding:0 3px">/</td>')
@@ -207,7 +208,7 @@ class Row:
         self.name,
         self.finished_levels,
         self.finished_lessons,
-        self.lessons,
+        lessons,
         '%4d/%d' % (self.total_finished_levels, self.total_lessons_for_skill),
         self.strength,
         '  <====' if self.is_next else ''))
