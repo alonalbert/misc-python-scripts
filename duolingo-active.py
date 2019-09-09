@@ -181,7 +181,7 @@ class Row:
     self.is_next = is_next
 
   def print(self):
-    lessons = self.lessons if self.finished_levels < 4 else _almost_finished(self.skill)
+    lessons = int(self.lessons if self.finished_levels < 4 else _almost_finished(self.skill))
     if is_html:
       print('<tr style="background: %s; font-weight: %s">' % (
         LEVEL_COLOR[self.finished_levels], 'bold' if self.is_next else 'normal'))
