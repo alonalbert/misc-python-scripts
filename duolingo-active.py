@@ -258,6 +258,7 @@ if __name__ == '__main__':
   skills = duo.get_skills()
   total_finished_levels = 0
   rows = []
+  next_row = None
   for index, skill in enumerate(skills):
     n = len(rows)
     levels = skill['num_levels']
@@ -280,15 +281,18 @@ if __name__ == '__main__':
       is_next = False
       first_row = rows[0]
       for i in range(1, n + 1, 1):
-        if first_row.is_next and rows[n - i].total_finished_levels == total_finished_levels + 4 * i + 1:
+        if (i == 1 or first_row.is_next) and rows[n - i].total_finished_levels == total_finished_levels + 4 * i + 1:
           is_next = True
           first_row.is_next = False
+          if next_row:
+            next_row.is_next = False
           break
 
-    rows.append(
-      Row(skill, index, name, finished_levels, finished_lessons, lessons, total_finished_levels,
-          total_lessons_for_skill,
-          strength, is_html, is_next))
+    row = Row(skill, index, name, finished_levels, finished_lessons, lessons, total_finished_levels,
+            total_lessons_for_skill, strength, is_html, is_next)
+    rows.append(row)
+    if is_next:
+        next_row = row
 
   for row in rows:
     row.print()
