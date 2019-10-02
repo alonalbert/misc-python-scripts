@@ -179,6 +179,7 @@ class Row:
     self.strength = strength
     self._is_html = is_html
     self.is_next = is_next
+    self.remaining = self.total_lessons_for_skill * 10 / 12 - self.total_finished_levels
 
   def print(self):
     lessons = int(self.lessons if self.finished_levels < 4 else _almost_finished(self.skill))
@@ -193,6 +194,7 @@ class Row:
       print('  <td style="padding:0 0px, 0, 10px; text-align: right">%d</td>' % (self.total_finished_levels))
       print('  <td style="padding:0 3px">/</td>')
       print('  <td style="padding:0 10px 0 0px">%d</td>' % (self.total_lessons_for_skill))
+      print('  <td style="padding:0 10px 0 0px">%d</td>' % (self.remaining))
       if self.is_next:
         text = '<====='
         href = 'https://www.duolingo.com/skill/%s/%s/%d' % (
@@ -294,8 +296,10 @@ if __name__ == '__main__':
     if is_next:
         next_row = row
 
+  total_remaining = 0
   for row in rows:
     row.print()
+    total_remaining += row.remaining
 
   if is_html:
     print('</tbody></table>')
@@ -327,13 +331,10 @@ if __name__ == '__main__':
           lessons_xp += 10
           bonus_xp += xp - 10
 
+  print_line(is_html, 'Remaining: %d' % (total_remaining))
   print_line(is_html, 'Almost finished: %d Active: %s' % (almost_finished, active))
   print_line(is_html, 'XP Gained today: %d' % xp_total)
-  print_line(is_html, '  Lessons %d:' % lessons_xp)
-  print_line(is_html, '  Bonus %d:' % bonus_xp)
-  print_line(is_html, '  Stories %d:' % stories_xp)
   finished, total = get_lessons_counts(skills)
-  print_line(is_html, 'Skills: %d' % len(skills))
   print_line(is_html, 'Lessons: %d/%d' % (finished, total))
 
   if is_html:
