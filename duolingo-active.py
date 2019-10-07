@@ -48,15 +48,15 @@ class Duo():
 
     url = 'https://www.duolingo.com/users/' + username
     self._data = json.loads(requests.get(url, cookies={'jwt_token': token}).content.decode("utf-8"))
+    self._language_data = self._data['language_data'][list(self._data['language_data'].keys())[0]]
 
   def get_skills(self):
-    language_data = self._data['language_data']['es']
-    skills = language_data['skills']
-    bonus_skills = language_data['bonus_skills']
+    skills = self._language_data['skills']
+    bonus_skills = self._language_data['bonus_skills']
     return sorted(skills + bonus_skills, key=lambda skill: skill['coords_y'] * 1000 + skill['coords_x'])
 
   def get_xp_gains(self):
-    return self._data['language_data']['es']['calendar']
+    return self._language_data['calendar']
 
   def get_total_lessons_for_skill(self, skill):
     level = skill['levels_finished']
@@ -297,6 +297,44 @@ if __name__ == '__main__':
         next_row = row
 
   total_remaining = 0
+  # rows = []
+
+  if len(rows) == 0:
+    active = 0
+    next_row = None
+    for index, skill in enumerate(skills):
+      n = len(rows)
+      levels = skill['num_levels']
+      finished_levels = skill['levels_finished']
+      finished_lessons = skill['level_sessions_finished']
+      if finished_levels == levels:
+        continue
+
+      active += 1
+      name = skill['title']
+      lessons = skill['num_sessions_for_level']
+      strength = int(skill['strength'] * 100)
+      total_finished_levels = duo.get_num_finished_lessons(skill)
+      total_lessons_for_skill = duo.get_total_lessons_for_skill(skill)
+      if n == 0:
+        is_next = True
+      else:
+        is_next = False
+        first_row = rows[0]
+        for i in range(1, n + 1, 1):
+          if (i == 1 or first_row.is_next) and rows[n - i].total_finished_levels == total_finished_levels + i + 1:
+            is_next = True
+            first_row.is_next = False
+            if next_row:
+              next_row.is_next = False
+            break
+
+      row = Row(skill, index, name, finished_levels, finished_lessons, lessons, total_finished_levels,
+                total_lessons_for_skill, strength, is_html, is_next)
+      rows.append(row)
+      if is_next:
+        next_row = row
+
   for row in rows:
     row.print()
     total_remaining += row.remaining
