@@ -182,7 +182,8 @@ class Row:
     self.remaining = self.total_lessons_for_skill * 10 / 12 - self.total_finished_levels
 
   def print(self):
-    lessons = int(self.lessons if self.finished_levels < 4 else _almost_finished(self.skill))
+    lessons = self.lessons
+    # lessons = int(self.lessons if self.finished_levels < 4  else _almost_finished(self.skill))
     if is_html:
       print('<tr style="background: %s; font-weight: %s">' % (
         LEVEL_COLOR[self.finished_levels], 'bold' if self.is_next else 'normal'))
@@ -297,7 +298,7 @@ if __name__ == '__main__':
         next_row = row
 
   total_remaining = 0
-  # rows = []
+  rows = []
 
   if len(rows) == 0:
     active = 0
