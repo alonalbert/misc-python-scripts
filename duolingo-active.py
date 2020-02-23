@@ -162,8 +162,7 @@ def print_line(is_html, line):
 
 class Row:
   def __init__(self, skill, index, name, finished_levels, finished_lessons, lessons, total_finished_levels,
-               total_lessons_for_skill, strength, is_html,
-               is_next):
+               total_lessons_for_skill, is_html):
     self.skill = skill
     self.index = index
     self.name = name
@@ -172,45 +171,32 @@ class Row:
     self.lessons = lessons
     self.total_finished_levels = total_finished_levels
     self.total_lessons_for_skill = total_lessons_for_skill
-    self.strength = strength
     self._is_html = is_html
-    self.is_next = is_next
-    self.remaining = self.total_lessons_for_skill * 10 / 12 - self.total_finished_levels
+    self.remaining = self.total_lessons_for_skill - self.total_finished_levels
 
   def print(self):
     lessons = self.lessons
     # lessons = int(self.lessons if self.finished_levels < 4  else _almost_finished(self.skill))
     if is_html:
-      print('<tr style="background: %s; font-weight: %s">' % (
-        LEVEL_COLOR[self.finished_levels], 'bold' if self.is_next else 'normal'))
+      print('<tr style="background: %s">' % (
+        LEVEL_COLOR[self.finished_levels]))
       print('  <td style="padding:0 10px">%s</td>' % self.index)
       print('  <td style="padding"0 10px">%s</td>' % self.name)
       # print('  <td style="padding"0 10px">Level %s</td>' % self.finished_levels)
       print('  <td style="padding:0 10px">%s/%s</td>' % (self.finished_lessons, lessons))
-      print('  <td style="padding:0 10px">%s%%</td>' % self.strength)
       print('  <td style="padding:0 0px, 0, 10px; text-align: right">%d</td>' % (self.total_finished_levels))
       print('  <td style="padding:0 3px">/</td>')
       print('  <td style="padding:0 10px 0 0px">%d</td>' % (self.total_lessons_for_skill))
       print('  <td style="padding:0 10px 0 0px">%d</td>' % (self.remaining))
-      if self.is_next:
-        text = '<====='
-        href = 'https://www.duolingo.com/skill/%s/%s/%d' % (
-        self.skill['language'], self.skill['url_title'], self.finished_lessons + 1)
-
-        print(
-          '  <td style="background: #ffffff; padding:0 10px;"><a href="%s" style="text-decoration: none;">%s</a></td>' % (
-            href, text))
       print('</tr>')
     else:
-      print('  %-3d: %-40s Level %d Lesson %2d/%02d  %-8s %3d%% %s' % (
+      print('  %-3d: %-40s Level %d Lesson %2d/%02d  %-8s' % (
         self.index,
         self.name,
         self.finished_levels,
         self.finished_lessons,
         lessons,
-        '%4d/%d' % (self.total_finished_levels, self.total_lessons_for_skill),
-        self.strength,
-        '  <====' if self.is_next else ''))
+        '%4d/%d' % (self.total_finished_levels, self.total_lessons_for_skill)))
 
 
 if __name__ == '__main__':
@@ -272,24 +258,10 @@ if __name__ == '__main__':
     strength = int(skill['strength'] * 100)
     total_finished_levels = duo.get_num_finished_lessons(skill)
     total_lessons_for_skill = duo.get_total_lessons_for_skill(skill)
-    if n == 0:
-      is_next = True
-    else:
-      is_next = False
-      first_row = rows[0]
-      for i in range(1, n + 1, 1):
-        if (i == 1 or first_row.is_next) and rows[n - i].total_finished_levels == total_finished_levels + 4 * i + 1:
-          is_next = True
-          first_row.is_next = False
-          if next_row:
-            next_row.is_next = False
-          break
 
     row = Row(skill, index, name, finished_levels, finished_lessons, lessons, total_finished_levels,
-            total_lessons_for_skill, strength, is_html, is_next)
+            total_lessons_for_skill, is_html)
     rows.append(row)
-    if is_next:
-        next_row = row
 
   total_remaining = 0
   rows = []
@@ -311,24 +283,10 @@ if __name__ == '__main__':
       strength = int(skill['strength'] * 100)
       total_finished_levels = duo.get_num_finished_lessons(skill)
       total_lessons_for_skill = duo.get_total_lessons_for_skill(skill)
-      if n == 0:
-        is_next = True
-      else:
-        is_next = False
-        first_row = rows[0]
-        for i in range(1, n + 1, 1):
-          if (i == 1 or first_row.is_next) and rows[n - i].total_finished_levels == total_finished_levels + i + 1:
-            is_next = True
-            first_row.is_next = False
-            if next_row:
-              next_row.is_next = False
-            break
 
       row = Row(skill, index, name, finished_levels, finished_lessons, lessons, total_finished_levels,
-                total_lessons_for_skill, strength, is_html, is_next)
+                total_lessons_for_skill, is_html)
       rows.append(row)
-      if is_next:
-        next_row = row
 
   for row in rows:
     row.print()
