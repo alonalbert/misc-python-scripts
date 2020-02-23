@@ -59,13 +59,10 @@ class Duo():
     return self._language_data['calendar']
 
   def get_total_lessons_for_skill(self, skill):
-    level = skill['levels_finished']
-    return int(skill['num_sessions_for_level'] / self.LESSONS[level] * self.LESSONS_TOTAL[len(self.LESSONS_TOTAL) - 1])
+    return skill['num_sessions_for_level'] * skill['num_levels']
 
   def get_num_finished_lessons(self, skill):
-    level = skill['levels_finished']
-    return self.LESSONS_TOTAL[level] * skill['num_sessions_for_level'] / self.LESSONS[level] + skill[
-      'level_sessions_finished']
+    return skill['levels_finished'] * skill['num_sessions_for_level'] + skill['level_sessions_finished']
 
   def get_data(self):
     return self._data
@@ -125,8 +122,7 @@ def _almost_finished(skill):
 def is_skill_finished(skill):
   levels = skill['num_levels']
   finished_levels = skill['levels_finished']
-  finished_lessons = skill['level_sessions_finished']
-  return finished_levels == levels or finished_levels == 4 and finished_lessons >= _almost_finished(skill)
+  return finished_levels == levels
 
 
 def is_skill_almost_finished(skill):
@@ -268,8 +264,6 @@ if __name__ == '__main__':
     finished_levels = skill['levels_finished']
     finished_lessons = skill['level_sessions_finished']
     if is_skill_finished(skill):
-      if is_skill_almost_finished(skill):
-        almost_finished += 1
       continue
 
     active += 1
