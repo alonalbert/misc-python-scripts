@@ -187,7 +187,7 @@ class Row:
       print('  <td style="padding:0 0px, 0, 10px; text-align: right">%d</td>' % (self.total_finished_levels))
       print('  <td style="padding:0 3px">/</td>')
       print('  <td style="padding:0 10px 0 0px">%d</td>' % (self.total_lessons_for_skill))
-      print('  <td style="padding:0 10px 0 0px">%d</td>' % (self.remaining))
+      print('  <td style="padding:0 10px 0 0px; text-align: right">%d</td>' % (self.remaining))
       print('</tr>')
     else:
       print('  %-3d: %-40s Level %d Lesson %2d/%02d  %-8s' % (
