@@ -59,11 +59,18 @@ class Duo():
     return self._language_data['calendar']
 
   def get_total_lessons_for_skill(self, skill):
+<<<<<<< HEAD
     return int(skill['num_sessions_for_level'] * self.LESSONS_TOTAL[len(self.LESSONS_TOTAL) - 1])
 
   def get_num_finished_lessons(self, skill):
     level = skill['levels_finished']
     return self.LESSONS_TOTAL[level] * skill['num_sessions_for_level'] + skill['level_sessions_finished']
+=======
+    return skill['num_sessions_for_level'] * skill['num_levels']
+
+  def get_num_finished_lessons(self, skill):
+    return skill['levels_finished'] * skill['num_sessions_for_level'] + skill['level_sessions_finished']
+>>>>>>> 8c5681afd968a206133996f6a3c026d203773172
 
   def get_data(self):
     return self._data
@@ -118,8 +125,18 @@ def update_sheet(spreadsheet_id, date, lessons_xp, bonus_xp, stories_xp, finishe
 def is_skill_finished(skill):
   levels = skill['num_levels']
   finished_levels = skill['levels_finished']
+<<<<<<< HEAD
   finished_lessons = skill['level_sessions_finished']
   return finished_levels == levels
+=======
+  return finished_levels == levels
+
+
+def is_skill_almost_finished(skill):
+  finished_levels = skill['levels_finished']
+  finished_lessons = skill['level_sessions_finished']
+  return finished_levels == 4 and 20 > finished_lessons >= _almost_finished(skill)
+>>>>>>> 8c5681afd968a206133996f6a3c026d203773172
 
 
 def get_lessons_counts(skills):
@@ -152,8 +169,7 @@ def print_line(is_html, line):
 
 class Row:
   def __init__(self, skill, index, name, finished_levels, finished_lessons, lessons, total_finished_levels,
-               total_lessons_for_skill, strength, is_html,
-               is_next):
+               total_lessons_for_skill, is_html):
     self.skill = skill
     self.index = index
     self.name = name
@@ -162,45 +178,32 @@ class Row:
     self.lessons = lessons
     self.total_finished_levels = total_finished_levels
     self.total_lessons_for_skill = total_lessons_for_skill
-    self.strength = strength
     self._is_html = is_html
-    self.is_next = is_next
-    self.remaining = self.total_lessons_for_skill * 10 / 12 - self.total_finished_levels
+    self.remaining = self.total_lessons_for_skill - self.total_finished_levels
 
   def print(self):
     lessons = self.lessons
     # lessons = int(self.lessons if self.finished_levels < 4  else _almost_finished(self.skill))
     if is_html:
-      print('<tr style="background: %s; font-weight: %s">' % (
-        LEVEL_COLOR[self.finished_levels], 'bold' if self.is_next else 'normal'))
+      print('<tr style="background: %s">' % (
+        LEVEL_COLOR[self.finished_levels]))
       print('  <td style="padding:0 10px">%s</td>' % self.index)
       print('  <td style="padding"0 10px">%s</td>' % self.name)
       # print('  <td style="padding"0 10px">Level %s</td>' % self.finished_levels)
       print('  <td style="padding:0 10px">%s/%s</td>' % (self.finished_lessons, lessons))
-      print('  <td style="padding:0 10px">%s%%</td>' % self.strength)
       print('  <td style="padding:0 0px, 0, 10px; text-align: right">%d</td>' % (self.total_finished_levels))
       print('  <td style="padding:0 3px">/</td>')
       print('  <td style="padding:0 10px 0 0px">%d</td>' % (self.total_lessons_for_skill))
-      print('  <td style="padding:0 10px 0 0px">%d</td>' % (self.remaining))
-      if self.is_next:
-        text = '<====='
-        href = 'https://www.duolingo.com/skill/%s/%s/%d' % (
-        self.skill['language'], self.skill['url_title'], self.finished_lessons + 1)
-
-        print(
-          '  <td style="background: #ffffff; padding:0 10px;"><a href="%s" style="text-decoration: none;">%s</a></td>' % (
-            href, text))
+      print('  <td style="padding:0 10px 0 0px; text-align: right">%d</td>' % (self.remaining))
       print('</tr>')
     else:
-      print('  %-3d: %-40s Level %d Lesson %2d/%02d  %-8s %3d%% %s' % (
+      print('  %-3d: %-40s Level %d Lesson %2d/%02d  %-8s' % (
         self.index,
         self.name,
         self.finished_levels,
         self.finished_lessons,
         lessons,
-        '%4d/%d' % (self.total_finished_levels, self.total_lessons_for_skill),
-        self.strength,
-        '  <====' if self.is_next else ''))
+        '%4d/%d' % (self.total_finished_levels, self.total_lessons_for_skill)))
 
 
 if __name__ == '__main__':
@@ -261,26 +264,38 @@ if __name__ == '__main__':
     strength = int(skill['strength'] * 100)
     total_finished_levels = duo.get_num_finished_lessons(skill)
     total_lessons_for_skill = duo.get_total_lessons_for_skill(skill)
-    if n == 0:
-      is_next = True
-    else:
-      is_next = False
-      first_row = rows[0]
-      for i in range(1, n + 1, 1):
-        if (i == 1 or first_row.is_next) and rows[n - i].total_finished_levels == total_finished_levels + 4 * i + 1:
-          is_next = True
-          first_row.is_next = False
-          if next_row:
-            next_row.is_next = False
-          break
 
     row = Row(skill, index, name, finished_levels, finished_lessons, lessons, total_finished_levels,
-            total_lessons_for_skill, strength, is_html, is_next)
+            total_lessons_for_skill, is_html)
     rows.append(row)
-    if is_next:
-        next_row = row
 
   total_remaining = 0
+<<<<<<< HEAD
+=======
+  rows = []
+
+  if len(rows) == 0:
+    active = 0
+    next_row = None
+    for index, skill in enumerate(skills):
+      n = len(rows)
+      levels = skill['num_levels']
+      finished_levels = skill['levels_finished']
+      finished_lessons = skill['level_sessions_finished']
+      if finished_levels == levels:
+        continue
+
+      active += 1
+      name = skill['title']
+      lessons = skill['num_sessions_for_level']
+      strength = int(skill['strength'] * 100)
+      total_finished_levels = duo.get_num_finished_lessons(skill)
+      total_lessons_for_skill = duo.get_total_lessons_for_skill(skill)
+
+      row = Row(skill, index, name, finished_levels, finished_lessons, lessons, total_finished_levels,
+                total_lessons_for_skill, is_html)
+      rows.append(row)
+>>>>>>> 8c5681afd968a206133996f6a3c026d203773172
 
   for row in rows:
     row.print()
