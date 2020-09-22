@@ -59,13 +59,11 @@ class Duo():
     return self._language_data['calendar']
 
   def get_total_lessons_for_skill(self, skill):
-    level = skill['levels_finished']
-    return int(skill['num_sessions_for_level'] / self.LESSONS[level] * self.LESSONS_TOTAL[len(self.LESSONS_TOTAL) - 1])
+    return int(skill['num_sessions_for_level'] * self.LESSONS_TOTAL[len(self.LESSONS_TOTAL) - 1])
 
   def get_num_finished_lessons(self, skill):
     level = skill['levels_finished']
-    return self.LESSONS_TOTAL[level] * skill['num_sessions_for_level'] / self.LESSONS[level] + skill[
-      'level_sessions_finished']
+    return self.LESSONS_TOTAL[level] * skill['num_sessions_for_level'] + skill['level_sessions_finished']
 
   def get_data(self):
     return self._data
@@ -117,22 +115,11 @@ def update_sheet(spreadsheet_id, date, lessons_xp, bonus_xp, stories_xp, finishe
     request.execute()
 
 
-def _almost_finished(skill):
-  lessons = skill['num_sessions_for_level']
-  return lessons / 5 * 3
-
-
 def is_skill_finished(skill):
   levels = skill['num_levels']
   finished_levels = skill['levels_finished']
   finished_lessons = skill['level_sessions_finished']
-  return finished_levels == levels or finished_levels == 4 and finished_lessons >= _almost_finished(skill)
-
-
-def is_skill_almost_finished(skill):
-  finished_levels = skill['levels_finished']
-  finished_lessons = skill['level_sessions_finished']
-  return finished_levels == 4 and 20 > finished_lessons >= _almost_finished(skill)
+  return finished_levels == levels
 
 
 def get_lessons_counts(skills):
@@ -147,9 +134,8 @@ def get_lessons_counts(skills):
       skill_total = finished_lessons
       skill_finished = finished_lessons
     else:
-      base_lessons = lessons / Duo.LESSONS[finished_levels]
-      skill_total = base_lessons * Duo.LESSONS_TOTAL[levels]
-      skill_finished = Duo.LESSONS_TOTAL[finished_levels] * base_lessons + finished_lessons
+      skill_total = lessons * Duo.LESSONS_TOTAL[levels]
+      skill_finished = Duo.LESSONS_TOTAL[finished_levels] * lessons + finished_lessons
 
     total += skill_total
     finished += skill_finished
@@ -256,7 +242,6 @@ if __name__ == '__main__':
   else:
     print(date)
 
-  almost_finished = 0
   active = 0
   skills = duo.get_skills()
   total_finished_levels = 0
@@ -268,13 +253,11 @@ if __name__ == '__main__':
     finished_levels = skill['levels_finished']
     finished_lessons = skill['level_sessions_finished']
     if is_skill_finished(skill):
-      if is_skill_almost_finished(skill):
-        almost_finished += 1
       continue
 
     active += 1
     name = skill['title']
-    lessons = skill['num_sessions_for_level']
+    lessons = skill['num_sessions_for_level'] * (finished_levels + 1)
     strength = int(skill['strength'] * 100)
     total_finished_levels = duo.get_num_finished_lessons(skill)
     total_lessons_for_skill = duo.get_total_lessons_for_skill(skill)
@@ -298,43 +281,6 @@ if __name__ == '__main__':
         next_row = row
 
   total_remaining = 0
-  rows = []
-
-  if len(rows) == 0:
-    active = 0
-    next_row = None
-    for index, skill in enumerate(skills):
-      n = len(rows)
-      levels = skill['num_levels']
-      finished_levels = skill['levels_finished']
-      finished_lessons = skill['level_sessions_finished']
-      if finished_levels == levels:
-        continue
-
-      active += 1
-      name = skill['title']
-      lessons = skill['num_sessions_for_level']
-      strength = int(skill['strength'] * 100)
-      total_finished_levels = duo.get_num_finished_lessons(skill)
-      total_lessons_for_skill = duo.get_total_lessons_for_skill(skill)
-      if n == 0:
-        is_next = True
-      else:
-        is_next = False
-        first_row = rows[0]
-        for i in range(1, n + 1, 1):
-          if (i == 1 or first_row.is_next) and rows[n - i].total_finished_levels == total_finished_levels + i + 1:
-            is_next = True
-            first_row.is_next = False
-            if next_row:
-              next_row.is_next = False
-            break
-
-      row = Row(skill, index, name, finished_levels, finished_lessons, lessons, total_finished_levels,
-                total_lessons_for_skill, strength, is_html, is_next)
-      rows.append(row)
-      if is_next:
-        next_row = row
 
   for row in rows:
     row.print()
@@ -371,7 +317,6 @@ if __name__ == '__main__':
           bonus_xp += xp - 10
 
   print_line(is_html, 'Remaining: %d' % (total_remaining))
-  print_line(is_html, 'Almost finished: %d Active: %s' % (almost_finished, active))
   print_line(is_html, 'XP Gained today: %d' % xp_total)
   finished, total = get_lessons_counts(skills)
   print_line(is_html, 'Lessons: %d/%d' % (finished, total))
