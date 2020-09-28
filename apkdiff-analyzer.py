@@ -36,7 +36,7 @@ def get_sizes(app):
     for line in f:
       split = line.strip().split(' ')
       # print('%s:%d' % (split[7].split('.')[0], int(split[0].strip())))
-      sizes[split[7].split('.')[0]] = int(split[0].strip())
+      sizes[split[7].split('.')[0].replace('/', '.')] = int(split[0].strip())
   return sizes
 
 class Type():
@@ -64,7 +64,7 @@ if __name__ == '__main__':
       name = type
     if name in sizes:
       types.append(Type(type, sizes[name]))
-    elif not (name.startswith('java') or name.startswith('android')):
+    elif not (name.startswith('java') or name.startswith('android') or name.endswith('package-info')):
       print('%s not found' % name)
 
   types.sort()
