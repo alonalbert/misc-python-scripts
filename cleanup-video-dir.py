@@ -32,24 +32,26 @@ def cleanup(root, recycleBin):
         dest = tempfile.mkdtemp("", file, recycleBin)
         shutil.move(path, dest)
 
-recycleBin = argv[-1]
-if os.path.exists(recycleBin):
-  shutil.rmtree(recycleBin)
-os.makedirs(recycleBin)
 
-for root in argv[1:-1]:
-  files1 = os.listdir(root)
-  for file1 in files1:
-    path1 = os.path.join(root, file1)
-    if os.path.isdir(path1):
-      files2 = os.listdir(path1)
-      for file2 in files2:
-        if re.match("S\\d+", file2):
-          path2 = os.path.join(path1, file2)
-          cleanup(path2, recycleBin)
+if __name__ == '__main__':
+  recycleBin = argv[-1]
+  if os.path.exists(recycleBin):
+    shutil.rmtree(recycleBin)
+  os.makedirs(recycleBin)
 
-for root in argv[1:-1]:
-  cleanup(root, recycleBin)
+  for root in argv[1:-1]:
+    files1 = os.listdir(root)
+    for file1 in files1:
+      path1 = os.path.join(root, file1)
+      if os.path.isdir(path1):
+        files2 = os.listdir(path1)
+        for file2 in files2:
+          if re.match("S\\d+", file2):
+            path2 = os.path.join(path1, file2)
+            cleanup(path2, recycleBin)
+
+  for root in argv[1:-1]:
+    cleanup(root, recycleBin)
 
 
 
